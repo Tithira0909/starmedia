@@ -598,8 +598,8 @@ body.viewer-focused .focused-view-overlay {
           <div class="news-card-wrapper <?= $hiddenClass ?>" style="<?= $hiddenStyle ?>">
             <a class="release-card news-card-item"
                href="#"
-               data-pdf="<?= h($it['url']) ?>"
-               onclick="openFullscreenViewer(event, '<?= h($it['url']) ?>'); return false;">
+               data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+               onclick="openFullscreenViewer(event, 'read.php?file=<?= rawurlencode($it['file']) ?>'); return false;">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?>"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
             </a>
@@ -702,7 +702,7 @@ body.viewer-focused .focused-view-overlay {
             ?>
               <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                  href="#" role="listitem"
-                 data-pdf="<?= h($it['url']) ?>"
+                 data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
                  title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
@@ -719,7 +719,7 @@ body.viewer-focused .focused-view-overlay {
         <div class="viewer-overlay" data-viewer="magFrame">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
         <?php if ($currentUrl): ?>
-          <iframe class="mag-frame" id="magFrame" src="<?= h($currentUrl) ?>#page=1" title="Magazine Flipbook" allowfullscreen></iframe>
+          <iframe class="mag-frame" id="magFrame" src="read.php?file=<?= rawurlencode($currentFile) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Upload a PDF in the admin to preview it here.</div>
@@ -751,7 +751,7 @@ body.viewer-focused .focused-view-overlay {
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                href="#" role="listitem"
-               data-pdf="<?= h($it['url']) ?>"
+               data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
                title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
@@ -801,7 +801,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
             ?>
               <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                  href="#" role="listitem"
-                 data-pdf="<?= h($it['url']) ?>"
+                 data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
                  title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
@@ -818,7 +818,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
         <div class="viewer-overlay" data-viewer="exclusiveFrame">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
         <?php if (!empty($exclusives)): ?>
-          <iframe class="mag-frame" id="exclusiveFrame" src="<?= h($exclusives[0]['url']) ?>#page=1" title="Exclusive Flipbook" allowfullscreen></iframe>
+          <iframe class="mag-frame" id="exclusiveFrame" src="read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>" title="Exclusive Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Latest Lanka Puwath Magazine will be Released Soon....</div>
@@ -839,7 +839,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                href="#" role="listitem"
-               data-pdf="<?= h($it['url']) ?>"
+               data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
                title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
@@ -995,8 +995,9 @@ function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSele
 
         e.preventDefault();
 
-        const file = a.dataset.pdf || ''; // This is now the full URL
-        frame.src = file + '#page=1';
+        // This is a relative path like read.php?file=foo.pdf
+        const file = a.dataset.pdf || '';
+        frame.src = file;
 
         // Update overlay data-file
         if (pane) {
@@ -1021,23 +1022,38 @@ function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSele
 }
 
 // Initialize Magazine Viewer
-initViewer('magFrame', 'releases', 'releases-mobile', <?= json_encode($currentUrl) ?>, '.mag-wrap');
+initViewer('magFrame', 'releases', 'releases-mobile', 'read.php?file=<?= rawurlencode($currentFile) ?>', '.mag-wrap');
 
 // Initialize Exclusive Viewer
 <?php if (!empty($exclusives)): ?>
-initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', <?= json_encode($exclusives[0]['url']) ?>, '#exclusive-magazines .mag-wrap');
+initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', 'read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>', '#exclusive-magazines .mag-wrap');
 <?php endif; ?>
 
 // Overlay logic
 document.querySelectorAll('.viewer-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         const viewerId = overlay.dataset.viewer;
-        const file = overlay.dataset.file;
 
-        if (file && window.openFullscreenViewer) {
-             window.openFullscreenViewer(e, file);
-             return;
+        // Magazine: open fullscreen viewer
+        if (viewerId === 'magFrame' || viewerId === 'exclusiveFrame') {
+             const file = overlay.dataset.file;
+             if (file && window.openFullscreenViewer) {
+                 window.openFullscreenViewer(e, file);
+                 return;
+             }
         }
+
+        // Others: hide overlay and focus iframe
+        overlay.classList.add('hidden');
+        const viewer = document.getElementById(viewerId);
+        if (viewer) {
+            viewer.focus();
+        }
+
+        // Add focus state
+        const magWrap = overlay.closest('.mag-wrap');
+        document.body.classList.add('viewer-focused');
+        magWrap.classList.add('is-focused');
     });
 });
 
