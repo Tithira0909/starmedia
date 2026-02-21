@@ -54,6 +54,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$imageRel) throw new RuntimeException('Please choose an image file.');
 
     $pdo = pdo();
+
+    // Delete all existing quick news to ensure only the latest one is kept
+    $pdo->exec("DELETE FROM quick_news");
+
     $sql = "INSERT INTO quick_news (news_text, image_file, created_at) VALUES (:news_text, :image_file, NOW())";
 
     $stmt = $pdo->prepare($sql);

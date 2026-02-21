@@ -116,6 +116,24 @@ $authorNote = $issues[0]['author_note'] ?? '';
 /* 5) For asset paths in header */
 $siteBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'); // e.g. /tour
 
+/* Fetch YouTube URL */
+$youtubeUrl = '';
+try {
+    $stmt = pdo()->prepare("SELECT value FROM site_settings WHERE key_name = 'youtube_video_url'");
+    $stmt->execute();
+    $youtubeUrl = $stmt->fetchColumn() ?: '';
+} catch (PDOException $e) {
+    // ignore
+}
+
+// Convert to embed URL if necessary
+$youtubeEmbed = '';
+if ($youtubeUrl) {
+    if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i', $youtubeUrl, $match)) {
+        $youtubeEmbed = 'https://www.youtube.com/embed/' . $match[1];
+    }
+}
+
 $heroImg = 'assets/img/guide.png';
 $heroImgExists = is_file(__DIR__ . '/' . $heroImg);
 ?>
@@ -444,6 +462,16 @@ body.viewer-focused .focused-view-overlay {
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
 
+<?php if (!empty($youtubeEmbed)): ?>
+<section class="section" style="padding-bottom: 0;">
+  <div class="container">
+     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 22px; box-shadow: var(--sh-2);">
+        <iframe src="<?= h($youtubeEmbed) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+     </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <!-- Hero -->
 <section id="home" class="hero">
   <div class="container">
@@ -549,6 +577,79 @@ body.viewer-focused .focused-view-overlay {
 }
 </style>
 
+<!-- News Flash -->
+<section id="newsflash" class="section">
+  <div class="container">
+    <h2 class="side-title" style="text-align:center;font-size:1.8rem;margin-bottom:24px;">News Flash</h2>
+    <?php if (empty($newsflashes)): ?>
+      <div class="muted" style="text-align:center;">No news flashes yet.</div>
+    <?php else: ?>
+      <div class="news-grid" id="newsFlashGrid">
+        <?php foreach ($newsflashes as $i => $it):
+          $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+          // Hide items beyond index 5 (0-5 = 6 items)
+          $hiddenStyle = $i >= 6 ? 'display:none;' : '';
+          $hiddenClass = $i >= 6 ? 'hidden-card' : '';
+        ?>
+          <div class="news-card-wrapper <?= $hiddenClass ?>" style="<?= $hiddenStyle ?>">
+            <a class="release-card news-card-item"
+               href="#"
+               data-pdf="<?= h($it['file']) ?>"
+               onclick="openFullscreenViewer(event, '<?= h($it['file']) ?>'); return false;">
+              <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?>"></span>
+              <span class="release-title"><?= h($it['label']) ?></span>
+            </a>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <?php if (count($newsflashes) > 6): ?>
+        <div style="text-align:center;margin-top:20px;">
+          <button id="loadMoreNews" class="btn primary">Load More</button>
+        </div>
+      <?php endif; ?>
+    <?php endif; ?>
+  </div>
+</section>
+
+<style>
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+@media (max-width: 600px) {
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.news-card-item {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--muted);
+  border-radius: 16px;
+  padding: 10px;
+  box-shadow: var(--sh-1);
+  transition: .18s ease transform, .18s ease box-shadow;
+  text-decoration: none;
+  color: inherit;
+}
+.news-card-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-2);
+  border-color: var(--g-300);
+}
+.release-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
+</style>
+
 <!-- Magazine + Sidebar -->
 <section id="issues" class="section">
   <div class="container two-col">
@@ -648,85 +749,6 @@ body.viewer-focused .focused-view-overlay {
 </div>
 </section>
 
-<!-- News Flash -->
-<section id="newsflash" class="section">
-  <div class="container two-col">
-    <!-- Sidebar -->
-    <aside class="sidecard">
-      <div id="newsflash-releases" class="side-block releases-block hide-on-mobile">
-        <div class="side-title">News Flash</div>
-        <?php if (empty($newsflashes)): ?>
-          <div class="muted">No news flashes yet.</div>
-        <?php else: ?>
-          <div class="releases" role="list" aria-label="Available newsflashes">
-            <?php foreach ($newsflashes as $it):
-              $exists   = $it['file'] !== '';
-              $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
-              $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
-            ?>
-              <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-                 href="<?= $href ?>" role="listitem"
-                 data-pdf="<?= h($it['file']) ?>"
-                 title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
-                <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
-                <span class="release-title"><?= h($it['label']) ?></span>
-              </a>
-            <?php endforeach; ?>
-          </div>
-        <?php endif; ?>
-      </div>
-    </aside>
-
-    <!-- Viewer + Controls -->
-    <div class="mag-wrap">
-      <div class="mag-pane">
-        <div class="viewer-overlay" data-viewer="newsFlashFrame">Tap to read</div>
-        <button class="exit-focus-btn">&times;</button>
-        <?php if (!empty($newsflashes)): ?>
-          <iframe class="mag-frame" id="newsFlashFrame" src="viewer.php?file=<?= rawurlencode($newsflashes[0]['file']) ?>&embed=1" title="News Flash Flipbook" allowfullscreen></iframe>
-        <?php else: ?>
-          <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
-            <div class="muted">Upload a News Flash PDF in the admin to preview it here.</div>
-          </div>
-        <?php endif; ?>
-      </div>
-
-      <!-- Controls (sticky on mobile) -->
-      <div class="mag-controls" id="newsFlashControls">
-        <button class="ctrl" data-act="prev">⟵ Prev <span class="k">←</span></button>
-        <button class="ctrl primary" data-act="next">Next ⟶ <span class="k">→</span></button>
-        <input class="pagebox" id="newsFlashPageBox" type="number" min="1" placeholder="Pg #">
-        <span id="page-count-news"></span>
-        <button class="ctrl" id="goNewsFlashPageBtn" title="Go to page">Go</button>
-        <button class="ctrl" data-act="zoomOut">− Zoom</button>
-        <button class="ctrl" data-act="zoomIn">+ Zoom</button>
-        <button class="ctrl" data-act="fit">Fit</button>
-      </div>
-    </div>
-    <div id="newsflash-releases-mobile" class="side-block releases-block show-on-mobile">
-      <div class="side-title">News Flash</div>
-      <?php if (empty($newsflashes)): ?>
-        <div class="muted">No news flashes yet.</div>
-      <?php else: ?>
-        <div class="releases" role="list" aria-label="Available newsflashes">
-          <?php foreach ($newsflashes as $it):
-            $exists   = $it['file'] !== '';
-            $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
-            $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
-          ?>
-            <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-               href="<?= $href ?>" role="listitem"
-               data-pdf="<?= h($it['file']) ?>"
-               title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
-              <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
-              <span class="release-title"><?= h($it['label']) ?></span>
-            </a>
-          <?php endforeach; ?>
-        </div>
-      <?php endif; ?>
-    </div>
-  </div>
-</section>
 
 <!-- Exclusive Hero -->
 <?php
@@ -835,6 +857,46 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
   </div>
 </footer>
 
+<!-- Fullscreen Viewer Container -->
+<div id="fullscreenViewer" class="fullscreen-viewer hidden">
+  <button class="close-viewer-btn">&times;</button>
+  <iframe id="fullscreenFrame" class="fullscreen-frame" src="" allowfullscreen></iframe>
+</div>
+
+<style>
+.fullscreen-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+.fullscreen-viewer.hidden {
+  display: none;
+}
+.fullscreen-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+}
+.close-viewer-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.8);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+}
+</style>
+
 <!-- JS: drawer, releases swap, author note, controls + page jump -->
 <script>
 // Drawer UI
@@ -846,6 +908,46 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
   btn?.addEventListener('click',open); close?.addEventListener('click',shut); scrim?.addEventListener('click',shut);
   window.addEventListener('scroll',()=>{ const y=window.scrollY||0; header?.classList.toggle('scrolled',y>4); header?.classList.toggle('shrink',y>24); },{passive:true});
 })();
+
+// Fullscreen Viewer Logic
+window.openFullscreenViewer = function(e, file) {
+  if (e) e.preventDefault();
+  const viewer = document.getElementById('fullscreenViewer');
+  const frame = document.getElementById('fullscreenFrame');
+  if (viewer && frame) {
+    viewer.classList.remove('hidden');
+    frame.src = 'viewer.php?file=' + encodeURIComponent(file) + '&embed=1';
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+document.querySelector('.close-viewer-btn')?.addEventListener('click', () => {
+  const viewer = document.getElementById('fullscreenViewer');
+  const frame = document.getElementById('fullscreenFrame');
+  if (viewer) {
+    viewer.classList.add('hidden');
+    frame.src = '';
+    document.body.style.overflow = '';
+  }
+});
+
+// Load More Logic
+const loadMoreBtn = document.getElementById('loadMoreNews');
+if (loadMoreBtn) {
+  loadMoreBtn.addEventListener('click', function() {
+    const hidden = document.querySelectorAll('.news-card-wrapper.hidden-card');
+    let count = 0;
+    for (let el of hidden) {
+      el.style.display = 'block';
+      el.classList.remove('hidden-card');
+      count++;
+      if (count >= 6) break;
+    }
+    if (document.querySelectorAll('.news-card-wrapper.hidden-card').length === 0) {
+      loadMoreBtn.style.display = 'none';
+    }
+  });
+}
 
 // NOTE MAP (file -> author_note)
 window.__NOTE_MAP__ = <?= json_encode(array_column($issues, 'author_note', 'file'), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) ?>;
@@ -869,6 +971,12 @@ function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFi
     const pane = document.querySelector(paneSelector);
     if (!frame) return;
 
+    // Set initial data-file for overlay
+    if (pane) {
+        const overlay = pane.querySelector('.viewer-overlay');
+        if (overlay) overlay.dataset.file = initialFile;
+    }
+
     function markCurrent(fileBase) {
         document.querySelectorAll(`#${releasesId} .release-card, #${releasesMobileId} .release-card`).forEach(card => {
             const same = (card.dataset.pdf || '') === fileBase;
@@ -890,6 +998,13 @@ function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFi
         if (frameId === 'magFrame') {
             setAuthorNoteFor(file);
         }
+
+        // Update overlay data-file
+        if (pane) {
+            const overlay = pane.querySelector('.viewer-overlay');
+            if (overlay) overlay.dataset.file = file;
+        }
+
         markCurrent(file);
         a.classList.add('active');
         a.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -1016,9 +1131,20 @@ window.addEventListener('message', e => {
 
 // Overlay logic
 document.querySelectorAll('.viewer-overlay').forEach(overlay => {
-    overlay.addEventListener('click', () => {
-        overlay.classList.add('hidden');
+    overlay.addEventListener('click', (e) => {
         const viewerId = overlay.dataset.viewer;
+
+        // Magazine: open fullscreen viewer
+        if (viewerId === 'magFrame') {
+             const file = overlay.dataset.file;
+             if (file && window.openFullscreenViewer) {
+                 window.openFullscreenViewer(e, file);
+                 return;
+             }
+        }
+
+        // Others: hide overlay and focus iframe
+        overlay.classList.add('hidden');
         const viewer = document.getElementById(viewerId);
         if (viewer) {
             viewer.focus();
