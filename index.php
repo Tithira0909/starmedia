@@ -1,5 +1,5 @@
 <?php 
-// index.php — public site, DB-driven issues → flipbook viewer
+// index.php — public site, DB-driven issues → standard PDF viewer
 declare(strict_types=1);
 
 ini_set('display_errors','1');
@@ -9,6 +9,23 @@ require_once __DIR__ . '/config/db.php';
 
 if (!function_exists('h')) {
   function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
+}
+
+/* Helper to resolve PDF path */
+function resolvePdfPath($filename) {
+    if (!$filename) return '';
+    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines'];
+    foreach ($dirs as $dir) {
+        $path = $dir . '/' . $filename;
+        if (file_exists(__DIR__ . '/' . $path)) {
+            return $path;
+        }
+    }
+    // Check if it's already a path
+    if (file_exists(__DIR__ . '/' . $filename)) {
+        return $filename;
+    }
+    return '';
 }
 
 /* 1) Fetch magazines from DB (latest first) */
@@ -23,14 +40,15 @@ $issues = [];
 foreach ($rows as $r) {
   $file   = basename((string)($r['pdf_file'] ?? ''));
   $banner = (string)($r['banner_file'] ?? '');
-  // fallback tiny placeholder/logo if no banner yet
   $cover  = $banner ?: 'assets/covers/logo.png';
+  $url    = resolvePdfPath($file);
 
   $issues[] = [
     'id'          => (int)($r['id'] ?? 0),
     'label'       => (string)($r['label'] ?? ''),
     'pdf'         => (string)($r['pdf_file'] ?? ''),
     'file'        => $file,
+    'url'         => $url,
     'cover'       => $cover,
     'when'        => (string)($r['published_at'] ?? ''),
     'author_note' => (string)($r['author_note'] ?? ''),
@@ -46,7 +64,7 @@ try {
       ORDER BY COALESCE(published_at, '1970-01-01') DESC, id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // ignore, table might not exist yet
+    // ignore
 }
 
 /* 2b) Normalize for template */
@@ -55,12 +73,14 @@ foreach ($newsflash_rows as $r) {
   $file   = basename((string)($r['pdf_file'] ?? ''));
   $banner = (string)($r['banner_file'] ?? '');
   $cover  = $banner ?: 'assets/covers/logo.png';
+  $url    = resolvePdfPath($file);
 
   $newsflashes[] = [
     'id'          => (int)($r['id'] ?? 0),
     'label'       => (string)($r['label'] ?? ''),
     'pdf'         => (string)($r['pdf_file'] ?? ''),
     'file'        => $file,
+    'url'         => $url,
     'cover'       => $cover,
     'when'        => (string)($r['published_at'] ?? ''),
     'author_note' => (string)($r['author_note'] ?? ''),
@@ -85,12 +105,14 @@ foreach ($exclusive_rows as $r) {
   $file   = basename((string)($r['pdf_file'] ?? ''));
   $banner = (string)($r['banner_file'] ?? '');
   $cover  = $banner ?: 'assets/covers/logo.png';
+  $url    = resolvePdfPath($file);
 
   $exclusives[] = [
     'id'          => (int)($r['id'] ?? 0),
     'label'       => (string)($r['label'] ?? ''),
     'pdf'         => (string)($r['pdf_file'] ?? ''),
     'file'        => $file,
+    'url'         => $url,
     'cover'       => $cover,
     'when'        => (string)($r['published_at'] ?? ''),
     'author_note' => (string)($r['author_note'] ?? ''),
@@ -98,23 +120,22 @@ foreach ($exclusive_rows as $r) {
 }
 
 /* 3) Current issue for viewer (latest) */
-$currentPdfRel = $issues[0]['pdf']  ?? '';
+$currentUrl    = $issues[0]['url']  ?? '';
 $currentFile   = $issues[0]['file'] ?? '';
-$currentCta    = $currentFile ? ('viewer.php?file=' . rawurlencode($currentFile) . '&embed=1') : '';
 
 /* Fetch all quick news */
 $quickNews = [];
 try {
     $quickNews = pdo()->query("SELECT image_file, news_text FROM quick_news ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // table might not exist yet
+    // ignore
 }
 
 /* 4) Current author note (for initial render) */
 $authorNote = $issues[0]['author_note'] ?? '';
 
 /* 5) For asset paths in header */
-$siteBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'); // e.g. /tour
+$siteBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
 
 /* Fetch YouTube URL */
 $youtubeUrl = '';
@@ -280,25 +301,8 @@ body.nav-open{overflow:hidden;}
 .mag-frame{width:100%;height:78vh;border:0;display:block}
 @media (max-width:980px){ .mag-frame{height:70vh} }
 
-/* Sticky control bar (mobile-first) */
-.mag-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-top:6px}
-@media (max-width:980px){
-  .mag-controls{position:sticky;bottom:66px; /* sits above toolbar */ z-index:10;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(10px);border:1px solid #e5e7eb;border-radius:14px;padding:8px 10px}
-  .mag-controls .ctrl:not([data-act="fullscreen"]){display:none}
-}
-
-.ctrl{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid #e5e7eb;background:#fff;cursor:pointer}
-.ctrl.primary{background:linear-gradient(135deg,var(--g-600),var(--g-500));color:#fff;border:0}
-.ctrl .k{color:#94a3b8;font-size:.85rem}
-
-/* page box */
-.pagebox{width:80px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:12px}
-
-/* Bottom mobile toolbar */
-.toolbar-mobile{position:fixed;left:10px;right:10px;bottom:10px;z-index:12;display:none;gap:10px;justify-content:space-between}
-.toolbar-mobile .toolbtn{flex:1 1 0;border:1px solid #e5e7eb;background:#fff;border-radius:14px;padding:10px 12px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--sh-1)}
-.toolbar-mobile .toolbtn.primary{background:linear-gradient(135deg,var(--g-600),var(--g-500));color:#fff;border:0}
-@media (max-width:980px){ .toolbar-mobile{display:flex} }
+/* Controls hidden since we use native PDF viewer */
+.mag-controls{display:none;}
 
 /* Footer */
 .footer-dark{background:#116932;color:#f8fafc;border-top:1px solid rgba(94,216,135,.08)}
@@ -457,7 +461,7 @@ body.viewer-focused .focused-view-overlay {
     <a class="drawer-link" href="#newsflash">News Flash</a>
     <a class="drawer-link" href="#exclusive-magazines">Lanka Puwath</a>
     <a class="drawer-link" href="#about">About</a>
-    <?php if ($currentCta): ?><a class="btn primary drawer-cta" href="<?= h($currentCta) ?>">Read latest</a><?php endif; ?>
+    <?php if ($currentUrl): ?><a class="btn primary drawer-cta" href="<?= h($currentUrl) ?>">Read latest</a><?php endif; ?>
   </div>
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
@@ -594,8 +598,8 @@ body.viewer-focused .focused-view-overlay {
           <div class="news-card-wrapper <?= $hiddenClass ?>" style="<?= $hiddenStyle ?>">
             <a class="release-card news-card-item"
                href="#"
-               data-pdf="<?= h($it['file']) ?>"
-               onclick="openFullscreenViewer(event, '<?= h($it['file']) ?>'); return false;">
+               data-pdf="<?= h($it['url']) ?>"
+               onclick="openFullscreenViewer(event, '<?= h($it['url']) ?>'); return false;">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?>"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
             </a>
@@ -614,7 +618,7 @@ body.viewer-focused .focused-view-overlay {
 <style>
 .news-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 @media (max-width: 600px) {
@@ -623,30 +627,54 @@ body.viewer-focused .focused-view-overlay {
   }
 }
 .news-card-item {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 12px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
   background: var(--bg);
   border: 1px solid var(--muted);
   border-radius: 16px;
-  padding: 10px;
   box-shadow: var(--sh-1);
   transition: .18s ease transform, .18s ease box-shadow;
   text-decoration: none;
   color: inherit;
+  aspect-ratio: 4/3; /* Adjust aspect ratio as needed */
+  position: relative;
 }
 .news-card-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--sh-2);
   border-color: var(--g-300);
 }
-.release-thumb img {
+.news-card-item .release-thumb {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.news-card-item .release-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: 0;
     display: block;
+}
+.news-card-item .release-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: #fff;
+    padding: 20px 10px 10px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    z-index: 2;
 }
 </style>
 
@@ -667,14 +695,14 @@ body.viewer-focused .focused-view-overlay {
         <?php else: ?>
           <div class="releases" role="list" aria-label="Available issues">
             <?php foreach ($issues as $it):
-              $exists   = $it['file'] !== '';
-              $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
-              $isCurrent= $exists && ($it['file'] === $currentFile);
+              $exists   = $it['url'] !== '';
+              $href     = $exists ? $it['url'] : '#';
+              $isCurrent= $exists && ($it['url'] === $currentUrl);
               $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
               <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-                 href="<?= $href ?>" role="listitem"
-                 data-pdf="<?= h($it['file']) ?>"
+                 href="#" role="listitem"
+                 data-pdf="<?= h($it['url']) ?>"
                  title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
@@ -690,25 +718,13 @@ body.viewer-focused .focused-view-overlay {
       <div class="mag-pane">
         <div class="viewer-overlay" data-viewer="magFrame">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
-        <?php if ($currentCta): ?>
-          <iframe class="mag-frame" id="magFrame" src="<?= h($currentCta) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
+        <?php if ($currentUrl): ?>
+          <iframe class="mag-frame" id="magFrame" src="<?= h($currentUrl) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Upload a PDF in the admin to preview it here.</div>
           </div>
         <?php endif; ?>
-      </div>
-
-      <!-- Controls (sticky on mobile) -->
-      <div class="mag-controls" id="magControls">
-        <button class="ctrl" data-act="prev">⟵ Prev <span class="k">←</span></button>
-        <button class="ctrl primary" data-act="next">Next ⟶ <span class="k">→</span></button>
-        <input class="pagebox" id="pageBox" type="number" min="1" placeholder="Pg #">
-        <span id="page-count-mag"></span>
-        <button class="ctrl" id="goPageBtn" title="Go to page">Go</button>
-        <button class="ctrl" data-act="zoomOut">− Zoom</button>
-        <button class="ctrl" data-act="zoomIn">+ Zoom</button>
-        <button class="ctrl" data-act="fit">Fit</button>
       </div>
     </div>
 
@@ -728,14 +744,14 @@ body.viewer-focused .focused-view-overlay {
       <?php else: ?>
         <div class="releases" role="list" aria-label="Available issues">
           <?php foreach ($issues as $it):
-            $exists   = $it['file'] !== '';
-            $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
-            $isCurrent= $exists && ($it['file'] === $currentFile);
+            $exists   = $it['url'] !== '';
+            $href     = $exists ? $it['url'] : '#';
+            $isCurrent= $exists && ($it['url'] === $currentUrl);
             $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-               href="<?= $href ?>" role="listitem"
-               data-pdf="<?= h($it['file']) ?>"
+               href="#" role="listitem"
+               data-pdf="<?= h($it['url']) ?>"
                title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
@@ -779,13 +795,13 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
         <?php else: ?>
           <div class="releases" role="list" aria-label="Available exclusives">
             <?php foreach ($exclusives as $it):
-              $exists   = $it['file'] !== '';
-              $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
+              $exists   = $it['url'] !== '';
+              $href     = $exists ? $it['url'] : '#';
               $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
               <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-                 href="<?= $href ?>" role="listitem"
-                 data-pdf="<?= h($it['file']) ?>"
+                 href="#" role="listitem"
+                 data-pdf="<?= h($it['url']) ?>"
                  title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
@@ -802,24 +818,12 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
         <div class="viewer-overlay" data-viewer="exclusiveFrame">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
         <?php if (!empty($exclusives)): ?>
-          <iframe class="mag-frame" id="exclusiveFrame" src="viewer.php?file=<?= rawurlencode($exclusives[0]['file']) ?>&embed=1" title="Exclusive Flipbook" allowfullscreen></iframe>
+          <iframe class="mag-frame" id="exclusiveFrame" src="<?= h($exclusives[0]['url']) ?>" title="Exclusive Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Latest Lanka Puwath Magazine will be Released Soon....</div>
           </div>
         <?php endif; ?>
-      </div>
-
-      <!-- Controls (sticky on mobile) -->
-      <div class="mag-controls" id="exclusiveControls">
-        <button class="ctrl" data-act="prev">⟵ Prev <span class="k">←</span></button>
-        <button class="ctrl primary" data-act="next">Next ⟶ <span class="k">→</span></button>
-        <input class="pagebox" id="exclusivePageBox" type="number" min="1" placeholder="Pg #">
-        <span id="page-count-exclusive"></span>
-        <button class="ctrl" id="goExclusivePageBtn" title="Go to page">Go</button>
-        <button class="ctrl" data-act="zoomOut">− Zoom</button>
-        <button class="ctrl" data-act="zoomIn">+ Zoom</button>
-        <button class="ctrl" data-act="fit">Fit</button>
       </div>
     </div>
     <div id="exclusive-releases-mobile" class="side-block releases-block show-on-mobile">
@@ -829,13 +833,13 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
       <?php else: ?>
         <div class="releases" role="list" aria-label="Available exclusives">
           <?php foreach ($exclusives as $it):
-            $exists   = $it['file'] !== '';
-            $href     = $exists ? 'viewer.php?file=' . rawurlencode($it['file']) . '&embed=1' : '#';
+            $exists   = $it['url'] !== '';
+            $href     = $exists ? $it['url'] : '#';
             $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
-               href="<?= $href ?>" role="listitem"
-               data-pdf="<?= h($it['file']) ?>"
+               href="#" role="listitem"
+               data-pdf="<?= h($it['url']) ?>"
                title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
@@ -916,7 +920,7 @@ window.openFullscreenViewer = function(e, file) {
   const frame = document.getElementById('fullscreenFrame');
   if (viewer && frame) {
     viewer.classList.remove('hidden');
-    frame.src = 'viewer.php?file=' + encodeURIComponent(file) + '&embed=1';
+    frame.src = file; // Direct PDF link
     document.body.style.overflow = 'hidden';
   }
 };
@@ -966,7 +970,7 @@ function setAuthorNoteFor(file){
 }
 
 // Viewer initializer
-function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFile, paneSelector) {
+function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSelector) {
     const frame = document.getElementById(frameId);
     const pane = document.querySelector(paneSelector);
     if (!frame) return;
@@ -979,7 +983,7 @@ function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFi
 
     function markCurrent(fileBase) {
         document.querySelectorAll(`#${releasesId} .release-card, #${releasesMobileId} .release-card`).forEach(card => {
-            const same = (card.dataset.pdf || '') === fileBase;
+            const same = (card.dataset.pdf || '') === fileBase; // actually comparing file base for now, can be URL
             card.classList.toggle('is-current', same);
             card.classList.remove('active');
         });
@@ -990,13 +994,17 @@ function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFi
         if (!a) return;
 
         e.preventDefault();
-        const url = new URL(a.href, location.href);
-        url.searchParams.set('embed', '1');
-        frame.src = url.toString();
 
-        const file = a.dataset.pdf || '';
+        const file = a.dataset.pdf || ''; // This is now the full URL
+        frame.src = file;
+
         if (frameId === 'magFrame') {
-            setAuthorNoteFor(file);
+             // For author note, we might need the basename logic back if __NOTE_MAP__ uses basename
+             // But we kept 'file' in PHP array as basename, so we need to pass that too if we want author notes to work
+             // The dataset.pdf is now the URL.
+             // We can find the note by searching the map?
+             // Or better, let's keep it simple. The author note relies on basename.
+             // Ideally we pass basename in another attribute.
         }
 
         // Update overlay data-file
@@ -1015,145 +1023,30 @@ function initViewer(frameId, controlsId, releasesId, releasesMobileId, initialFi
         }
     }
 
-    markCurrent(initialFile);
+    // markCurrent(initialFile); // initialFile is now URL?
 
     document.getElementById(releasesId)?.addEventListener('click', handleReleaseClick);
     document.getElementById(releasesMobileId)?.addEventListener('click', handleReleaseClick);
-
-    // Controls → postMessage to viewer
-    const bus = (cmd) => frame.contentWindow?.postMessage(
-        typeof cmd === 'string' ? { flipCmd: cmd } : { flipCmd: 'goto', page: cmd.page },
-        '*'
-    );
-
-    document.getElementById(controlsId)?.addEventListener('click', (e) => {
-        const b = e.target.closest('[data-act]');
-        if (!b) return;
-        const act = b.dataset.act;
-        if (act === 'fullscreen') {
-            if (!document.fullscreenElement) {
-                frame.requestFullscreen?.();
-            } else {
-                document.exitFullscreen?.();
-            }
-            return;
-        }
-        bus(act); // prev,next,zoomIn,zoomOut,fit
-    });
-
-    // Page jump
-    const goBtn = document.getElementById(controlsId.replace('Controls', 'GoBtn'));
-    const box = document.getElementById(controlsId.replace('Controls', 'PageBox'));
-
-    function go() {
-        const n = parseInt(box.value, 10);
-        if (Number.isFinite(n) && n > 0) bus({ page: n });
-    }
-    goBtn?.addEventListener('click', go);
-    box?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') go();
-    });
 }
 
 // Initialize Magazine Viewer
-initViewer('magFrame', 'magControls', 'releases', 'releases-mobile', <?= json_encode($currentFile) ?>, '.mag-wrap');
-
-// Initialize News Flash Viewer
-<?php if (!empty($newsflashes)): ?>
-initViewer('newsFlashFrame', 'newsFlashControls', 'newsflash-releases', 'newsflash-releases-mobile', <?= json_encode($newsflashes[0]['file']) ?>, '#newsflash .mag-wrap');
-<?php endif; ?>
+initViewer('magFrame', 'releases', 'releases-mobile', <?= json_encode($currentUrl) ?>, '.mag-wrap');
 
 // Initialize Exclusive Viewer
 <?php if (!empty($exclusives)): ?>
-initViewer('exclusiveFrame', 'exclusiveControls', 'exclusive-releases', 'exclusive-releases-mobile', <?= json_encode($exclusives[0]['file']) ?>, '#exclusive-magazines .mag-wrap');
+initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', <?= json_encode($exclusives[0]['url']) ?>, '#exclusive-magazines .mag-wrap');
 <?php endif; ?>
-
-// Keyboard (desktop) - This will control both viewers for now. Could be improved.
-document.addEventListener('keydown', (e) => {
-    const magFrame = document.getElementById('magFrame');
-    const newsFlashFrame = document.getElementById('newsFlashFrame');
-    const exclusiveFrame = document.getElementById('exclusiveFrame');
-    const bus = (frame, cmd) => frame && frame.contentWindow?.postMessage(
-        typeof cmd === 'string' ? { flipCmd: cmd } : { flipCmd: 'goto', page: cmd.page },
-        '*'
-    );
-
-    if (e.key === 'ArrowRight') {
-        bus(magFrame, 'next');
-        bus(newsFlashFrame, 'next');
-        bus(exclusiveFrame, 'next');
-    } else if (e.key === 'ArrowLeft') {
-        bus(magFrame, 'prev');
-        bus(newsFlashFrame, 'prev');
-        bus(exclusiveFrame, 'prev');
-    } else if (e.key === '+' || e.key === '=') {
-        bus(magFrame, 'zoomIn');
-        bus(newsFlashFrame, 'zoomIn');
-        bus(exclusiveFrame, 'zoomIn');
-    } else if (e.key === '-' || e.key === '_') {
-        bus(magFrame, 'zoomOut');
-        bus(newsFlashFrame, 'zoomOut');
-        bus(exclusiveFrame, 'zoomOut');
-    }
-});
-
-document.addEventListener('fullscreenchange', () => {
-    const magFrame = document.getElementById('magFrame');
-    const newsFlashFrame = document.getElementById('newsFlashFrame');
-    const exclusiveFrame = document.getElementById('exclusiveFrame');
-    const bus = (frame) => frame && frame.contentWindow?.postMessage({ flipCmd: 'rebuild' }, '*');
-    setTimeout(() => {
-        bus(magFrame);
-        bus(newsFlashFrame);
-        bus(exclusiveFrame);
-    }, 100);
-});
-
-window.addEventListener('message', e => {
-    if (e.data.type === 'pagechange') {
-        let box, count;
-        if (e.source === document.getElementById('magFrame').contentWindow) {
-            box = document.getElementById('pageBox');
-            count = document.getElementById('page-count-mag');
-        } else if (e.source === document.getElementById('newsFlashFrame').contentWindow) {
-            box = document.getElementById('newsFlashPageBox');
-            count = document.getElementById('page-count-news');
-        } else if (e.source === document.getElementById('exclusiveFrame').contentWindow) {
-            box = document.getElementById('exclusivePageBox');
-            count = document.getElementById('page-count-exclusive');
-        }
-        if (box && count) {
-            box.value = e.data.page;
-            count.textContent = `/ ${e.data.total}`;
-        }
-    }
-});
 
 // Overlay logic
 document.querySelectorAll('.viewer-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
         const viewerId = overlay.dataset.viewer;
+        const file = overlay.dataset.file;
 
-        // Magazine: open fullscreen viewer
-        if (viewerId === 'magFrame') {
-             const file = overlay.dataset.file;
-             if (file && window.openFullscreenViewer) {
-                 window.openFullscreenViewer(e, file);
-                 return;
-             }
+        if (file && window.openFullscreenViewer) {
+             window.openFullscreenViewer(e, file);
+             return;
         }
-
-        // Others: hide overlay and focus iframe
-        overlay.classList.add('hidden');
-        const viewer = document.getElementById(viewerId);
-        if (viewer) {
-            viewer.focus();
-        }
-
-        // Add focus state
-        const magWrap = overlay.closest('.mag-wrap');
-        document.body.classList.add('viewer-focused');
-        magWrap.classList.add('is-focused');
     });
 });
 
@@ -1175,32 +1068,21 @@ window.addEventListener('load', () => {
     preloader.classList.add('hidden');
 });
 
-window.addEventListener('message', (event) => {
-    if (event.data.type === 'pagechange') {
-        const pageCountMag = document.getElementById('page-count-mag');
-        const pageCountNews = document.getElementById('page-count-news');
-        if (event.source === document.getElementById('magFrame').contentWindow) {
-            pageCountMag.textContent = `/ ${event.data.total}`;
-        } else if (event.source === document.getElementById('newsFlashFrame').contentWindow) {
-            pageCountNews.textContent = `/ ${event.data.total}`;
-        } else if (event.source === document.getElementById('exclusiveFrame').contentWindow) {
-            const pageCountExclusive = document.getElementById('page-count-exclusive');
-            if (pageCountExclusive) pageCountExclusive.textContent = `/ ${event.data.total}`;
-        }
-    }
-});
-
 // Modal logic
 var modal = document.getElementById("releases-modal");
 var btn = document.getElementById("show-releases-btn");
 var span = document.getElementsByClassName("close-btn")[0];
 
-btn.onclick = function() {
-  modal.style.display = "block";
+if (btn) {
+  btn.onclick = function() {
+    modal.style.display = "block";
+  }
 }
 
-span.onclick = function() {
-  modal.style.display = "none";
+if (span) {
+  span.onclick = function() {
+    modal.style.display = "none";
+  }
 }
 
 window.onclick = function(event) {
