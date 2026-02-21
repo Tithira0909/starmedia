@@ -466,16 +466,6 @@ body.viewer-focused .focused-view-overlay {
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
 
-<?php if (!empty($youtubeEmbed)): ?>
-<section class="section" style="padding-bottom: 0;">
-  <div class="container">
-     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 22px; box-shadow: var(--sh-2);">
-        <iframe src="<?= h($youtubeEmbed) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-     </div>
-  </div>
-</section>
-<?php endif; ?>
-
 <!-- Hero -->
 <section id="home" class="hero">
   <div class="container">
@@ -488,6 +478,16 @@ body.viewer-focused .focused-view-overlay {
     <?php endif; ?>
   </div>
 </section>
+
+<?php if (!empty($youtubeEmbed)): ?>
+<section class="section" style="padding-bottom: 0;">
+  <div class="container">
+     <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 22px; box-shadow: var(--sh-2);">
+        <iframe src="<?= h($youtubeEmbed) ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border:0;" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+     </div>
+  </div>
+</section>
+<?php endif; ?>
 
 <!-- Welcome Message -->
 <section id="welcome" class="section welcome-section">
@@ -746,7 +746,6 @@ body.viewer-focused .focused-view-overlay {
           <?php foreach ($issues as $it):
             $exists   = $it['url'] !== '';
             $href     = $exists ? $it['url'] : '#';
-            $isCurrent= $exists && ($it['url'] === $currentUrl);
             $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
@@ -839,7 +838,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
           ?>
             <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                href="#" role="listitem"
-               data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+               data-pdf="read.php?file=<?= rawurlencode($it['url']) ?>"
                title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
               <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
               <span class="release-title"><?= h($it['label']) ?></span>
