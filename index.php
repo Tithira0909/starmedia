@@ -296,8 +296,7 @@ body.nav-open{overflow:hidden;}
 /* Flipbook pane + controls */
 .mag-wrap{display:flex;flex-direction:column;gap:10px;position:sticky;top:96px}
 .mag-pane{position:relative;min-height:520px;background:linear-gradient(120deg,#ecfdf5,#ffffff);border:1px solid var(--ring);border-radius:var(--r-xl);box-shadow:var(--sh-2);overflow:hidden}
-.viewer-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);color:white;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:bold;cursor:pointer;z-index:10;transition:opacity 0.3s ease-in-out;}
-.viewer-overlay.hidden{opacity:0;pointer-events:none;}
+.mag-overlay-trigger{position:absolute;inset:0;z-index:20;background:transparent;cursor:pointer;}
 .mag-frame{width:100%;height:78vh;border:0;display:block}
 @media (max-width:980px){ .mag-frame{height:70vh} }
 
@@ -394,27 +393,6 @@ body.viewer-focused .focused-view-overlay {
   z-index: 91;
 }
 
-.exit-focus-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 20; /* Above the iframe */
-  background: rgba(0,0,0,0.5);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
-  font-size: 24px;
-  line-height: 36px;
-  text-align: center;
-  cursor: pointer;
-  display: none; /* Hidden by default */
-}
-
-.mag-wrap.is-focused .exit-focus-btn {
-  display: block;
-}
 </style>
 
     <meta property="og:title" content="TourGuide">
@@ -716,10 +694,9 @@ body.viewer-focused .focused-view-overlay {
     <!-- Viewer + Controls -->
     <div class="mag-wrap">
       <div class="mag-pane">
-        <div class="viewer-overlay" data-viewer="magFrame">Tap to read</div>
-        <button class="exit-focus-btn">&times;</button>
         <?php if ($currentUrl): ?>
-          <iframe class="mag-frame" id="magFrame" src="<?= h($currentUrl) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
+          <div class="mag-overlay-trigger" onclick="openFullscreenViewer(event, '<?= h($currentUrl) ?>');"></div>
+          <iframe class="mag-frame" id="magFrame" src="<?= h($currentUrl) ?>#page=1" title="Magazine Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Upload a PDF in the admin to preview it here.</div>
@@ -815,10 +792,9 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
     <!-- Viewer + Controls -->
     <div class="mag-wrap">
       <div class="mag-pane">
-        <div class="viewer-overlay" data-viewer="exclusiveFrame">Tap to read</div>
-        <button class="exit-focus-btn">&times;</button>
         <?php if (!empty($exclusives)): ?>
-          <iframe class="mag-frame" id="exclusiveFrame" src="<?= h($exclusives[0]['url']) ?>" title="Exclusive Flipbook" allowfullscreen></iframe>
+          <div class="mag-overlay-trigger" onclick="openFullscreenViewer(event, '<?= h($exclusives[0]['url']) ?>');"></div>
+          <iframe class="mag-frame" id="exclusiveFrame" src="<?= h($exclusives[0]['url']) ?>#page=1" title="Exclusive Flipbook" allowfullscreen></iframe>
         <?php else: ?>
           <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
             <div class="muted">Latest Lanka Puwath Magazine will be Released Soon....</div>
@@ -977,8 +953,13 @@ function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSele
 
     // Set initial data-file for overlay
     if (pane) {
-        const overlay = pane.querySelector('.viewer-overlay');
-        if (overlay) overlay.dataset.file = initialFile;
+        const overlay = pane.querySelector('.mag-overlay-trigger');
+        if (overlay) {
+             // Instead of data attribute, we can directly set the onclick.
+             // But the onclick is already set in the template for the initial file.
+             // We need to update it when releases are clicked.
+             overlay.setAttribute('onclick', `openFullscreenViewer(event, '${initialFile}');`);
+        }
     }
 
     function markCurrent(fileBase) {
@@ -996,21 +977,14 @@ function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSele
         e.preventDefault();
 
         const file = a.dataset.pdf || ''; // This is now the full URL
-        frame.src = file;
+        frame.src = file + '#page=1';
 
-        if (frameId === 'magFrame') {
-             // For author note, we might need the basename logic back if __NOTE_MAP__ uses basename
-             // But we kept 'file' in PHP array as basename, so we need to pass that too if we want author notes to work
-             // The dataset.pdf is now the URL.
-             // We can find the note by searching the map?
-             // Or better, let's keep it simple. The author note relies on basename.
-             // Ideally we pass basename in another attribute.
-        }
-
-        // Update overlay data-file
+        // Update overlay click handler
         if (pane) {
-            const overlay = pane.querySelector('.viewer-overlay');
-            if (overlay) overlay.dataset.file = file;
+            const overlay = pane.querySelector('.mag-overlay-trigger');
+            if (overlay) {
+                 overlay.setAttribute('onclick', `openFullscreenViewer(event, '${file}');`);
+            }
         }
 
         markCurrent(file);
@@ -1038,29 +1012,10 @@ initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', 
 <?php endif; ?>
 
 // Overlay logic
-document.querySelectorAll('.viewer-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => {
-        const viewerId = overlay.dataset.viewer;
-        const file = overlay.dataset.file;
-
-        if (file && window.openFullscreenViewer) {
-             window.openFullscreenViewer(e, file);
-             return;
-        }
-    });
-});
+// No longer needed as we use direct onclick
 
 // Exit focus logic
-document.querySelectorAll('.exit-focus-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const magWrap = btn.closest('.mag-wrap');
-        const overlay = magWrap.querySelector('.viewer-overlay');
-
-        document.body.classList.remove('viewer-focused');
-        magWrap.classList.remove('is-focused');
-        overlay.classList.remove('hidden');
-    });
-});
+// No longer needed as overlay is gone
 
 // Hide preloader
 window.addEventListener('load', () => {
