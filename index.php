@@ -169,6 +169,7 @@ $heroImgExists = is_file(__DIR__ . '/' . $heroImg);
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
 <style>
 :root{
@@ -351,8 +352,9 @@ body.nav-open{overflow:hidden;}
   background: linear-gradient(135deg, var(--g-50), #ffffff);
 }
 .welcome-message {
-  font-size: 1.8rem;
-  font-weight: 800;
+  font-family: 'Caveat', 'Dancing Script', 'Pacifico', cursive; /* Handwritten style font */
+  font-size: 1.5rem; /* Reduced font size */
+  font-weight: 600;
   color: var(--g-800);
   opacity: 0;
   animation: fadeIn 1.5s ease-in-out forwards;
@@ -507,7 +509,7 @@ body.viewer-focused .focused-view-overlay {
 <!-- Welcome Message -->
 <section id="welcome" class="section welcome-section">
   <div class="container">
-    <h1 class="welcome-message">Welcome to Lanka TourGuide Online portal! Explore Sri Lanka's most beautiful sustainable destinations and discover responsible tourism.</h1>
+    <h1 class="welcome-message">Star Media: Leading News with News Lanka, Exploring Frontiers with Tour Guide, and Connecting Communities with Oz Lanka.</h1>
   </div>
 </section>
 
