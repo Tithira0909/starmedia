@@ -752,18 +752,20 @@ body.viewer-focused .focused-view-overlay {
 
     <!-- Main Flipbook Area -->
     <main class="mag-wrap" id="ozlanka-mag-wrap">
-      <?php if (!empty($ozlanka_magazines)): ?>
-        <iframe class="mag-frame" id="ozlankaFrame"
-                title="OzLanka Viewer"
-                src="read.php?file=<?= rawurlencode($ozlanka_magazines[0]['file']) ?>"
-                allowfullscreen></iframe>
-      <?php else: ?>
-        <div style="padding: 40px; text-align: center; color: var(--dim); border: 2px dashed var(--ring); border-radius: var(--r-xl);">
-          <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 16px; color: var(--g-300);"></i>
-          <h3>No OzLanka Magazines Published</h3>
-          <p>Check back later for exciting new content.</p>
-        </div>
-      <?php endif; ?>
+      <div class="mag-pane">
+        <div class="viewer-overlay" data-viewer="ozlankaFrame">Tap to read</div>
+        <button class="exit-focus-btn">&times;</button>
+        <?php if (!empty($ozlanka_magazines)): ?>
+          <iframe class="mag-frame" id="ozlankaFrame"
+                  title="OzLanka Viewer"
+                  src="read.php?file=<?= rawurlencode($ozlanka_magazines[0]['file']) ?>"
+                  allowfullscreen></iframe>
+        <?php else: ?>
+          <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
+            <div class="muted">No OzLanka Magazines Published</div>
+          </div>
+        <?php endif; ?>
+      </div>
     </main>
   </div>
 </section>
@@ -829,7 +831,7 @@ body.viewer-focused .focused-view-overlay {
     <!-- Viewer + Controls -->
     <div class="mag-wrap">
       <div class="mag-pane">
-        <div class="viewer-overlay" data-viewer="magFrame">Tap to read</div>
+        <div class="viewer-overlay" data-viewer="magFrame" data-file="read.php?file=<?= rawurlencode($currentFile) ?>">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
         <?php if ($currentUrl): ?>
           <iframe class="mag-frame" id="magFrame" src="read.php?file=<?= rawurlencode($currentFile) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
@@ -929,7 +931,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
     <!-- Viewer + Controls -->
     <div class="mag-wrap">
       <div class="mag-pane">
-        <div class="viewer-overlay" data-viewer="exclusiveFrame">Tap to read</div>
+        <div class="viewer-overlay" data-viewer="exclusiveFrame" data-file="read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>">Tap to read</div>
         <button class="exit-focus-btn">&times;</button>
         <?php if (!empty($exclusives)): ?>
           <iframe class="mag-frame" id="exclusiveFrame" src="read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>" title="Exclusive Flipbook" allowfullscreen></iframe>
@@ -1136,26 +1138,23 @@ function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSele
 }
 
 // Initialize Magazine Viewer
-initViewer('magFrame', 'releases', 'releases-mobile', 'read.php?file=<?= rawurlencode($currentFile) ?>', '.mag-wrap');
+initViewer('magFrame', 'releases', 'releases-mobile', 'read.php?file=<?= rawurlencode($currentFile) ?>', '#issues .mag-wrap');
 
 // Initialize Exclusive Viewer
-<?php if (!empty($exclusives)): ?>
 <?php if (!empty($ozlanka_magazines)): ?>
   initViewer('ozlankaFrame', 'ozlanka-releases', 'ozlanka-releases-mobile', 'read.php?file=<?= rawurlencode($ozlanka_magazines[0]['file']) ?>', '#ozlanka-magazines .mag-wrap');
 <?php endif; ?>
+<?php if (!empty($exclusives)): ?>
   initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', 'read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>', '#exclusive-magazines .mag-wrap');
 <?php endif; ?>
 
 // Overlay logic
 document.querySelectorAll('.viewer-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
-        const viewerId = overlay.dataset.viewer;
-
-        // Magazine: open fullscreen viewer
+        // We open the fullscreen viewer for ALL overlays
         const file = overlay.dataset.file;
         if (file && window.openFullscreenViewer) {
             window.openFullscreenViewer(e, file);
-            return;
         }
     });
 });
