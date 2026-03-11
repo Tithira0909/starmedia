@@ -1152,25 +1152,11 @@ document.querySelectorAll('.viewer-overlay').forEach(overlay => {
         const viewerId = overlay.dataset.viewer;
 
         // Magazine: open fullscreen viewer
-        if (viewerId === 'magFrame' || viewerId === 'exclusiveFrame') {
-             const file = overlay.dataset.file;
-             if (file && window.openFullscreenViewer) {
-                 window.openFullscreenViewer(e, file);
-                 return;
-             }
+        const file = overlay.dataset.file;
+        if (file && window.openFullscreenViewer) {
+            window.openFullscreenViewer(e, file);
+            return;
         }
-
-        // Others: hide overlay and focus iframe
-        overlay.classList.add('hidden');
-        const viewer = document.getElementById(viewerId);
-        if (viewer) {
-            viewer.focus();
-        }
-
-        // Add focus state
-        const magWrap = overlay.closest('.mag-wrap');
-        document.body.classList.add('viewer-focused');
-        magWrap.classList.add('is-focused');
     });
 });
 
