@@ -1,1 +1,56 @@
-[Sat Feb 21 21:56:54 2026] Failed to listen on localhost:8000 (reason: Address already in use)
+[Wed Mar 11 09:02:26 2026] PHP 8.3.6 Development Server (http://0.0.0.0:3000) started
+[Wed Mar 11 09:02:54 2026] 127.0.0.1:54198 Accepted
+[Wed Mar 11 09:02:54 2026] PHP Warning:  Undefined variable $pdo in /app/index.php on line 93
+[Wed Mar 11 09:02:54 2026] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in /app/index.php:93
+Stack trace:
+#0 {main}
+  thrown in /app/index.php on line 93
+[Wed Mar 11 09:02:54 2026] 127.0.0.1:54198 [200]: GET /index.php - Uncaught Error: Call to a member function prepare() on null in /app/index.php:93
+Stack trace:
+#0 {main}
+  thrown in /app/index.php on line 93
+[Wed Mar 11 09:02:54 2026] 127.0.0.1:54198 Closing
+[Wed Mar 11 09:03:29 2026] 127.0.0.1:37206 Accepted
+[Wed Mar 11 09:03:29 2026] PHP Warning:  Undefined variable $pdo in /app/index.php on line 93
+[Wed Mar 11 09:03:29 2026] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in /app/index.php:93
+Stack trace:
+#0 {main}
+  thrown in /app/index.php on line 93
+[Wed Mar 11 09:03:29 2026] 127.0.0.1:37206 [200]: GET /index.php - Uncaught Error: Call to a member function prepare() on null in /app/index.php:93
+Stack trace:
+#0 {main}
+  thrown in /app/index.php on line 93
+[Wed Mar 11 09:03:29 2026] 127.0.0.1:37206 Closing
+[Wed Mar 11 09:05:04 2026] 127.0.0.1:41574 Accepted
+[Wed Mar 11 09:05:04 2026] 127.0.0.1:41574 [200]: GET /index.php
+[Wed Mar 11 09:05:04 2026] 127.0.0.1:41574 Closing
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59062 Accepted
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59062 [200]: GET /index.php
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59062 Closing
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59066 Accepted
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59080 Accepted
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59066 [200]: GET /assets/logo-2.png
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59080 [200]: GET /assets/logo1.png
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59080 Closing
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59066 Closing
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59088 Accepted
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59102 Accepted
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59088 [200]: GET /assets/logo-ozlanka.png
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59102 [200]: GET /assets/img/exclusive_hero.jpg
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59088 Closing
+[Wed Mar 11 09:05:50 2026] 127.0.0.1:59102 Closing
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45954 Accepted
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45954 [200]: GET /
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45954 Closing
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45956 Accepted
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45962 Accepted
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45976 Accepted
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45988 Accepted
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45956 [200]: GET /assets/logo-2.png
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45962 [200]: GET /assets/logo1.png
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45962 Closing
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45976 [200]: GET /assets/logo-ozlanka.png
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45956 Closing
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45976 Closing
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45988 [200]: GET /assets/img/exclusive_hero.jpg
+[Wed Mar 11 09:08:49 2026] 127.0.0.1:45988 Closing

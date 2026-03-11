@@ -81,6 +81,7 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         <a class="btn ghost" href="<?= $adminBase ?>/new.php">+ New Magazine</a>
         <a class="btn ghost" href="<?= $adminBase ?>/news_flash.php">News Flash</a>
         <a class="btn ghost" href="<?= $adminBase ?>/exclusive_magazines.php">Lanka Puwath</a>
+        <a class="btn ghost" href="<?= $adminBase ?>/ozlanka_magazines.php">OzLanka</a>
         <a class="btn ghost" href="<?= $adminBase ?>/quick_news.php">Quick News</a>
         <a class="btn ghost" href="<?= $adminBase ?>/settings.php">Settings</a>
         <a class="btn danger" href="<?= $adminBase ?>/login.php">Logout</a>

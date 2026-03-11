@@ -12,6 +12,17 @@ function pdo(): PDO {
 
   // Automate DB Migrations
   $pdo->exec("
+    CREATE TABLE IF NOT EXISTS ozlanka_magazines (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(255),
+      pdf_file VARCHAR(255),
+      banner_file VARCHAR(255),
+      label VARCHAR(255),
+      published_at DATETIME,
+      created_at DATETIME,
+      is_published TINYINT(1) DEFAULT 1
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
     CREATE TABLE IF NOT EXISTS site_settings (
       key_name VARCHAR(100) PRIMARY KEY,
       value TEXT
