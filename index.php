@@ -549,8 +549,9 @@ body.viewer-focused .focused-view-overlay {
       <div class="swiper-wrapper">
         <?php foreach ($quickNews as $news): ?>
           <div class="swiper-slide">
-            <div class="quick-news-card">
-              <a href="#newsflash"><img src="<?= h($news['image_file']) ?>" alt="Update Image" class="quick-news-img"></a>
+            <div class="quick-news-card" style="background-image: url('<?= h($news['image_file']) ?>');">
+              <div class="quick-news-overlay"></div>
+              <a href="#newsflash" class="quick-news-link" aria-label="View news flash"></a>
               <div class="quick-news-text">
                 <p style="text-align: justify;"><?= h($news['news_text']) ?></p>
               </div>
@@ -570,25 +571,53 @@ body.viewer-focused .focused-view-overlay {
 
 <style>
 .quick-news-card {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 22px;
-  background: var(--bg);
-  border: 1px solid var(--muted);
-  border-radius: var(--r-xl);
-  padding: 22px;
-  box-shadow: var(--sh-2);
-  align-items: center;
-}
-.quick-news-img {
+  position: relative;
   width: 100%;
-  height: auto;
-  border-radius: var(--r-lg);
+  min-height: 250px;
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--r-xl);
+  padding: 40px;
+  box-shadow: var(--sh-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+}
+.quick-news-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: var(--r-xl);
+  z-index: 1;
+}
+.quick-news-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.quick-news-text {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 800px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  pointer-events: none;
 }
 @media (max-width: 768px) {
   .quick-news-card {
-    grid-template-columns: 1fr;
+    padding: 24px;
+    min-height: 200px;
+  }
+  .quick-news-text {
+    font-size: 1rem;
     text-align: center;
+  }
+  .quick-news-text p {
+    text-align: center !important;
   }
 }
 .horizontal-carousel {
