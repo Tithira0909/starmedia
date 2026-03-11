@@ -1172,10 +1172,13 @@ document.querySelectorAll('.exit-focus-btn').forEach(btn => {
 });
 
 // Hide preloader
-window.addEventListener('load', () => {
+function hidePreloader() {
     const preloader = document.getElementById('preloader');
-    preloader.classList.add('hidden');
-});
+    if (preloader) preloader.classList.add('hidden');
+}
+window.addEventListener('load', hidePreloader);
+document.addEventListener('DOMContentLoaded', hidePreloader);
+setTimeout(hidePreloader, 3000); // fallback
 
 // Modal logic
 var modal = document.getElementById("releases-modal");
