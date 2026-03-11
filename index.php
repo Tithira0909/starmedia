@@ -437,8 +437,7 @@ body.viewer-focused .focused-view-overlay {
 <header class="site-header nav-glass" data-nav>
   <div class="container nav">
     <a class="brand" href="#home">
-      <img class="logo-img" src="<?= $siteBase ?>/assets/img/logo.png" alt="TourGuide logo">
-      <span class="brand-title">TourGuide</span>
+      <img class="logo-img" src="<?= $siteBase ?>/assets/logo-2.png" alt="TourGuide logo" style="width: auto; max-width: 150px; border-radius: 0;">
     </a>
     <nav class="menu" aria-label="Main">
       <a class="nav-link" href="#home">Home</a>
@@ -452,7 +451,7 @@ body.viewer-focused .focused-view-overlay {
   <!-- Drawer -->
   <div class="nav-drawer" id="navDrawer" role="dialog" aria-modal="true" aria-label="Menu">
     <div class="drawer-head">
-      <div class="brand"><img class="logo-img" src="<?= $siteBase ?>/assets/img/logo.png" alt="" width="36" height="36"><span class="brand-title">TourGuide</span></div>
+      <div class="brand"><img class="logo-img" src="<?= $siteBase ?>/assets/logo-2.png" alt="" style="width: auto; height: 36px; border-radius: 0;"></div>
       <button class="drawer-close" id="navClose" aria-label="Close"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     </div>
     <a class="drawer-link" href="#home">Home</a>
@@ -466,16 +465,32 @@ body.viewer-focused .focused-view-overlay {
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
 
+<!-- Ad Wrapper -->
+<?php
+  // Fetch ad banners
+  $leftAdBanner = '';
+  $rightAdBanner = '';
+  try {
+      $stmt = pdo()->prepare("SELECT key_name, value FROM site_settings WHERE key_name IN ('left_ad_banner', 'right_ad_banner')");
+      $stmt->execute();
+      $adSettings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+      $leftAdBanner = $adSettings['left_ad_banner'] ?? '';
+      $rightAdBanner = $adSettings['right_ad_banner'] ?? '';
+  } catch (Exception $e) {}
+?>
+<div class="page-with-ads">
+  <?php if ($leftAdBanner): ?>
+    <aside class="side-ad left-ad">
+      <img src="<?= htmlspecialchars($leftAdBanner) ?>" alt="Advertisement">
+    </aside>
+  <?php endif; ?>
+
+  <main class="main-content-area">
+
 <!-- Hero -->
 <section id="home" class="hero">
-  <div class="container">
-    <?php if ($heroImgExists): ?>
-      <div class="hero-only-card"><img src="<?= h($heroImg) ?>" alt="TourGuide hero image"></div>
-    <?php else: ?>
-      <div class="hero-only-card" style="display:grid;place-items:center;min-height:240px;background:linear-gradient(120deg,#ecfdf5,#ffffff)">
-        <div class="muted">Add <code>assets/img/guide.png</code> to show a hero image.</div>
-      </div>
-    <?php endif; ?>
+  <div class="container" style="text-align: center;">
+    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 50%; width: 50%; height: auto;">
   </div>
 </section>
 
@@ -1111,5 +1126,57 @@ window.onclick = function(event) {
     },
   });
 </script>
+  </main>
+
+  <?php if ($rightAdBanner): ?>
+    <aside class="side-ad right-ad">
+      <img src="<?= htmlspecialchars($rightAdBanner) ?>" alt="Advertisement">
+    </aside>
+  <?php endif; ?>
+</div> <!-- End page-with-ads -->
+
+<style>
+/* Ad Layout Styling */
+.page-with-ads {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+.main-content-area {
+  flex: 1;
+  max-width: 1200px;
+  min-width: 0; /* Prevents overflow */
+}
+.side-ad {
+  display: none; /* Hidden on mobile by default */
+  width: 160px; /* Standard wide skyscraper ad width */
+  position: sticky;
+  top: 100px; /* Space from header */
+  flex-shrink: 0;
+}
+.side-ad img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@media (min-width: 1200px) {
+  .side-ad {
+    display: block; /* Show ads on larger screens */
+  }
+}
+
+@media (min-width: 1600px) {
+  .side-ad {
+    width: 300px; /* Wider ads on very large screens */
+  }
+}
+</style>
 </body>
 </html>
