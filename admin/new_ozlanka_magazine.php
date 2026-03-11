@@ -6,10 +6,13 @@ if (!function_exists('h')) {
   function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 }
 
-$siteBase  = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
-$adminBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
+$siteBase  = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\'); // /tour
+$adminBase = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');         // /tour/admin
 
 $error = '';
+$ok    = false;
+
+/* ---------- helpers ---------- */
 
 function ensure_dir(string $dir): void {
   if (!is_dir($dir)) { @mkdir($dir, 0775, true); }
@@ -32,47 +35,73 @@ function save_upload(string $field, string $destDir, array $allowExt, int $maxBy
   $abs  = rtrim($destDir,'/\\') . DIRECTORY_SEPARATOR . $name;
   if (!move_uploaded_file($f['tmp_name'], $abs)) throw new RuntimeException('Failed to save '.$field.' to disk');
 
+  // Return a web path relative to project root
   $projectRoot = str_replace('\\', '/', realpath(__DIR__.'/..'));
   $absolutePath = str_replace('\\', '/', realpath($abs));
   $projectRootWithSlash = rtrim($projectRoot, '/') . '/';
   $webBase = str_replace($projectRootWithSlash, '', $absolutePath);
-  return $webBase;
+  return $webBase; // e.g. assets/magazines/xxxxx.pdf
 }
+
+/* ---------- handle POST ---------- */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
-    $news_text = trim((string)($_POST['news_text'] ?? ''));
+    $label       = trim((string)($_POST['label'] ?? ''));
+    $title       = trim((string)($_POST['title'] ?? ''));
+    $issue_date  = trim((string)($_POST['issue_date'] ?? ''));
+    $author_note = trim((string)($_POST['author_note'] ?? ''));
 
-    if ($news_text === '') throw new RuntimeException('News text is required.');
+    if ($label === '') throw new RuntimeException('Issue label is required.');
 
-    $imageRel = save_upload(
-      'image',
-      realpath(__DIR__ . '/../assets/quick_news') ?: __DIR__ . '/../assets/quick_news',
+    // PDF (required)
+    $pdfRel = save_upload(
+      'pdf',
+      realpath(__DIR__ . '/../assets/magazines') ?: __DIR__ . '/../assets/magazines',
+      ['pdf'],
+      50 * 1024 * 1024
+    );
+    if (!$pdfRel) throw new RuntimeException('Please choose a PDF file.');
+
+    // Banner (optional)
+    $bannerRel = save_upload(
+      'banner',
+      realpath(__DIR__ . '/../assets/covers') ?: __DIR__ . '/../assets/covers',
       ['png','jpg','jpeg','webp','gif','svg'],
       10 * 1024 * 1024
     );
-    if (!$imageRel) throw new RuntimeException('Please choose an image file.');
 
+    // Basic date sanity (optional field)
+    if ($issue_date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $issue_date)) {
+      throw new RuntimeException('Issue date must be YYYY-MM-DD.');
+    }
     $pdo = pdo();
-
-    // Delete all existing quick news to ensure only the latest one is kept
-    $pdo->exec("DELETE FROM quick_news");
-
-    $sql = "INSERT INTO quick_news (news_text, image_file, created_at) VALUES (:news_text, :image_file, NOW())";
+    $sql = "
+      INSERT INTO ozlanka_magazines
+        (label, title, issue_date, author_note, pdf_file, banner_file, is_published, created_at)
+      VALUES
+        (:label, :title, :issue_date, :author_note, :pdf_file, :banner_file, 0, NOW())
+    ";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-      ':news_text' => $news_text,
-      ':image_file' => $imageRel,
+      ':label'       => $label,
+      ':title'       => $title !== '' ? $title : null,
+      ':issue_date'  => $issue_date !== '' ? $issue_date : null,
+      ':author_note' => $author_note !== '' ? $author_note : null,
+      ':pdf_file'    => $pdfRel,
+      ':banner_file' => $bannerRel,
     ]);
 
-    header('Location: ' . $adminBase . '/quick_news.php');
+    // success — back to the list
+    header('Location: ' . $adminBase . '/ozlanka_magazines.php');
     exit;
   } catch (Throwable $e) {
     $error = $e->getMessage();
   }
 }
 ?>
+<!-- ====== STYLES (same as you already have) ====== -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root{--green:#16a34a;--green-600:#16a34a;--green-700:#15803d;--green-50:#ecfdf5;--bg:#f8fafc;--ink:#0f172a;--muted:#64748b;--card:#ffffff;--border:#e2e8f0;--shadow:0 18px 40px rgba(2,8,23,.08)}
@@ -103,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="shell">
     <div class="hero-inner">
       <div>
-        <h1 class="hero-title">Create a New Quick News</h1>
-        <p class="hero-sub">Upload an image and add a short text snippet.</p>
+        <h1 class="hero-title">Create a New Lanka Puwath</h1>
+        <p class="hero-sub">Upload your PDF, add images and an optional note — publish later from the list.</p>
       </div>
     </div>
   </div>
@@ -115,15 +144,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <form class="ui-card mag-form" method="post" enctype="multipart/form-data">
     <div class="grid2 gap16">
-      <div class="f span2">
-        <label for="news_text">News Text</label>
-        <textarea id="news_text" name="news_text" rows="3" placeholder="A short news snippet" required></textarea>
+      <div class="f">
+        <label for="label">Issue label</label>
+        <input id="label" name="label" type="text" placeholder="e.g., Special Edition 2025" required>
+      </div>
+
+      <div class="f">
+        <label for="title">Title <span class="muted">(optional)</span></label>
+        <input id="title" name="title" type="text" placeholder="Shown in the reader / lists">
+      </div>
+
+      <div class="f">
+        <label for="issue_date">Issue date <span class="muted">(YYYY-MM-DD)</span></label>
+        <input id="issue_date" name="issue_date" type="date">
+      </div>
+
+      <div class="f">
+        <label for="author_note">Author’s note <span class="muted">(optional)</span></label>
+        <textarea id="author_note" name="author_note" rows="3" placeholder="A short line from the editor"></textarea>
       </div>
 
       <div class="f span2">
-        <label>Image <span class="muted">(required)</span></label>
-        <div class="dropzone" data-for="image">
-          <input id="image" name="image" type="file" accept="image/*" required>
+        <label>PDF file <span class="muted">(required, .pdf, max 50MB)</span></label>
+        <div class="dropzone" data-for="pdf">
+          <input id="pdf" name="pdf" type="file" accept="application/pdf" required>
+          <div class="dz-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v18M5 10l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="dz-body">
+            <strong>Click to choose</strong> or drop your PDF here
+            <div class="dz-sub muted">We’ll show the file name and size.</div>
+          </div>
+        </div>
+        <div id="pdfChip" class="file-chip" hidden></div>
+      </div>
+
+      <div class="f">
+        <label>Banner image <span class="muted">(optional)</span></label>
+        <div class="dropzone" data-for="banner">
+          <input id="banner" name="banner" type="file" accept="image/*">
           <div class="dz-icon">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M4 5h16v14H4zM4 16l4-4 3 3 5-5 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -131,17 +192,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </div>
           <div class="dz-body">
             <strong>Click to add</strong> or drop an image
-            <div class="dz-sub muted">Recommended size: 800x600</div>
+            <div class="dz-sub muted">Wide image looks best (e.g., 1600×600)</div>
           </div>
         </div>
-        <img id="imagePreview" class="img-preview" alt="" hidden>
-        <div id="imageChip" class="file-chip" hidden></div>
+        <img id="bannerPreview" class="img-preview" alt="" hidden>
+        <div id="bannerChip" class="file-chip" hidden></div>
       </div>
     </div>
 
     <div class="form-actions">
-      <a class="btn ghost" href="<?= $adminBase ?>/quick_news.php">← Back</a>
-      <button class="btn primary" type="submit">Save Quick News</button>
+      <a class="btn ghost" href="<?= $adminBase ?>/ozlanka_magazines.php">← Back</a>
+      <button class="btn primary" type="submit">Save OzLanka magazine</button>
     </div>
   </form>
 </section>
@@ -164,6 +225,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('is-over'); }));
     zone.addEventListener('drop', e => { if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; input.dispatchEvent(new Event('change', {bubbles:true})); } });
   }
-  bindZone(document.getElementById('image'), document.getElementById('imageChip'), document.getElementById('imagePreview'));
+  bindZone(document.getElementById('pdf'),    document.getElementById('pdfChip'));
+  bindZone(document.getElementById('banner'), document.getElementById('bannerChip'), document.getElementById('bannerPreview'));
+
+  const d = document.getElementById('issue_date');
+  if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
 })();
 </script>

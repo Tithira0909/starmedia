@@ -19,7 +19,7 @@ $sql = "
     FROM reader_comments
     GROUP BY magazine_id
   ) c ON c.magazine_id = m.id
-  ORDER BY COALESCE(m.published_at, m.created_at) DESC, m.id DESC
+  ORDER BY m.sort_order ASC, COALESCE(m.published_at, m.created_at) DESC, m.id DESC
 ";
 $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -81,7 +81,9 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
         <a class="btn ghost" href="<?= $adminBase ?>/new.php">+ New Magazine</a>
         <a class="btn ghost" href="<?= $adminBase ?>/news_flash.php">News Flash</a>
         <a class="btn ghost" href="<?= $adminBase ?>/exclusive_magazines.php">Lanka Puwath</a>
+        <a class="btn ghost" href="<?= $adminBase ?>/ozlanka_magazines.php">OzLanka</a>
         <a class="btn ghost" href="<?= $adminBase ?>/quick_news.php">Quick News</a>
+        <a class="btn ghost" href="<?= $adminBase ?>/settings.php">Settings</a>
         <a class="btn danger" href="<?= $adminBase ?>/login.php">Logout</a>
       </div>
     </div>
@@ -94,6 +96,7 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
       <table class="table-green">
         <thead>
           <tr>
+            <th style="width: 40px;"></th>
             <th>Issue</th>
             <th>Title</th>
             <th>PDF</th>
@@ -104,9 +107,10 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             <th class="t-right"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="sortable-tbody" data-table="magazines">
         <?php foreach ($rows as $r): ?>
-          <tr>
+          <tr data-id="<?= (int)$r['id'] ?>">
+            <td style="cursor: grab; text-align: center; color: #94a3b8;">&#9776;</td>
             <td data-label="Issue"><?= h($r['label']) ?></td>
             <td data-label="Title"><?= $r['title'] !== null && $r['title'] !== '' ? h($r['title']) : '—' ?></td>
             <td data-label="PDF"><?= h(basename($r['pdf_file'] ?? '')) ?></td>
@@ -149,6 +153,43 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     </div>
   </div>
 </section>
+
+<!-- Include SortableJS for Drag and Drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tbody = document.getElementById('sortable-tbody');
+    if (tbody) {
+        new Sortable(tbody, {
+            animation: 150,
+            handle: 'td:first-child',
+            onEnd: function (evt) {
+                const table = tbody.getAttribute('data-table');
+                const order = [];
+                tbody.querySelectorAll('tr').forEach(function(row) {
+                    order.push(row.getAttribute('data-id'));
+                });
+
+                fetch('update_order.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ table: table, order: order })
+                }).then(res => res.json()).then(data => {
+                    if(!data.success) {
+                        alert('Error updating order');
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    alert('Error updating order');
+                });
+            }
+        });
+    }
+});
+</script>
+
 <style>
   td.note{max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
