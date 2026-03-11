@@ -145,39 +145,3 @@ Stack trace:
 [Wed Mar 11 13:22:57 2026] 127.0.0.1:55656 Accepted
 [Wed Mar 11 13:22:57 2026] 127.0.0.1:55656 [200]: GET /css/style.css
 [Wed Mar 11 13:22:57 2026] 127.0.0.1:55656 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54260 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54260 [200]: GET /
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54260 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54270 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54276 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54270 [200]: GET /assets/logo-2.png
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54276 [200]: GET /assets/logo1.png
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54276 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54270 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54292 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54300 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54316 Accepted
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54292 [200]: GET /assets/logo-ozlanka.png
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54300 [200]: GET /assets/img/guide.png
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54292 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54316 [200]: GET /assets/img/exclusive_hero.jpg
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54300 Closing
-[Wed Mar 11 14:22:38 2026] 127.0.0.1:54316 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56896 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56896 [200]: GET /
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56896 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56908 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56916 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56908 [200]: GET /assets/logo-2.png
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56916 [200]: GET /assets/logo1.png
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56916 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56908 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56930 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56944 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56954 Accepted
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56930 [200]: GET /assets/logo-ozlanka.png
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56930 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56944 [200]: GET /assets/img/guide.png
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56954 [200]: GET /assets/img/exclusive_hero.jpg
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56944 Closing
-[Wed Mar 11 18:22:33 2026] 127.0.0.1:56954 Closing

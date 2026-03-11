@@ -14,7 +14,7 @@ if (!function_exists('h')) {
 /* Helper to resolve PDF path */
 function resolvePdfPath($filename) {
     if (!$filename) return '';
-    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines', 'assets/ozlanka_magazines'];
+    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines'];
     foreach ($dirs as $dir) {
         $path = $dir . '/' . $filename;
         if (file_exists(__DIR__ . '/' . $path)) {
@@ -202,9 +202,8 @@ $heroImgExists = is_file(__DIR__ . '/' . $heroImg);
   --sh-1:0 4px 12px rgba(0,0,0,.05); --sh-2:0 10px 24px rgba(0,0,0,.08);
 }
 *{box-sizing:border-box}
-html { scroll-behavior: smooth; }
 html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;overflow-x:hidden}
-a{color:var(--g-700);text-decoration:none; transition: color 0.2s;} a:hover{color:var(--g-800)}
+a{color:var(--g-700);text-decoration:none} a:hover{color:var(--g-800)}
 .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
 /* Header */
@@ -330,11 +329,10 @@ body.nav-open{overflow:hidden;}
 .mag-controls{display:none;}
 
 /* Footer */
-.site-footer { width: 100%; margin: 0; padding: 0; }
-.footer-dark{background:var(--g-600, #1d4ed8);color:#f8fafc;border-top:1px solid rgba(255,255,255,.1)}
-.foot{padding:18px 16px; max-width: 1200px; margin: 0 auto;}
+.footer-dark{background:#116932;color:#f8fafc;border-top:1px solid rgba(94,216,135,.08)}
+.foot{padding:18px 16px}
 .foot-split{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.credit a{color:#93c5fd;text-decoration:none}.credit a:hover{text-decoration:underline}
+.credit a{color:#7efbd3;text-decoration:none}.credit a:hover{text-decoration:underline}
 @media (max-width:640px){ .foot-split{flex-direction:column;text-align:center} }
 
 .muted{color:var(--dim)}
@@ -547,9 +545,10 @@ body.viewer-focused .focused-view-overlay {
       <div class="swiper-wrapper">
         <?php foreach ($quickNews as $news): ?>
           <div class="swiper-slide">
-            <div class="quick-news-card" style="background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('<?= h($news['image_file']) ?>');">
+            <div class="quick-news-card">
+              <a href="#newsflash"><img src="<?= h($news['image_file']) ?>" alt="Update Image" class="quick-news-img"></a>
               <div class="quick-news-text">
-                <p><?= h($news['news_text']) ?></p>
+                <p style="text-align: justify;"><?= h($news['news_text']) ?></p>
               </div>
             </div>
           </div>
@@ -567,28 +566,26 @@ body.viewer-focused .focused-view-overlay {
 
 <style>
 .quick-news-card {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 22px;
+  background: var(--bg);
+  border: 1px solid var(--muted);
   border-radius: var(--r-xl);
-  padding: 40px 22px;
+  padding: 22px;
   box-shadow: var(--sh-2);
-  min-height: 300px;
-  width: 100%;
+  align-items: center;
 }
-.quick-news-text {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 24px;
-  border-radius: var(--r-lg);
-  box-shadow: var(--sh-1);
-  text-align: justify;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  max-width: 900px;
+.quick-news-img {
   width: 100%;
+  height: auto;
+  border-radius: var(--r-lg);
+}
+@media (max-width: 768px) {
+  .quick-news-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
 }
 .horizontal-carousel {
   overflow: hidden;
@@ -723,75 +720,157 @@ body.viewer-focused .focused-view-overlay {
 
 <!-- Magazine + Sidebar -->
 
-<!-- OzLanka Magazine -->
+<!-- OzLanka Magazine + Sidebar -->
 <div style="text-align: center; margin-bottom: 20px;">
   <img src="assets/logo-ozlanka.png" alt="OzLanka Logo" style="max-width: 55%; width: 55%; height: auto;">
 </div>
 <section id="ozlanka-magazines" class="section">
-  <div class="container">
-    <div class="sidecard" style="padding: 20px;">
-      <div id="ozlanka-releases" class="side-block releases-block">
-        <div class="side-title" style="text-align: center;">OzLanka</div>
+  <div class="container two-col">
+    <!-- Sidebar -->
+    <aside class="sidecard">
+      <div id="ozlanka-releases" class="side-block releases-block hide-on-mobile">
+        <div class="side-title">OzLanka</div>
         <?php if (empty($ozlanka_magazines)): ?>
-          <div class="muted" style="text-align: center;">No OzLanka magazines yet.</div>
+          <div class="muted">No OzLanka magazines yet.</div>
         <?php else: ?>
-          <div class="news-grid">
+          <div class="releases" role="list">
             <?php foreach ($ozlanka_magazines as $it):
               $thumb = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
-              <div class="news-card-wrapper">
-                <a class="release-card news-card-item"
-                   href="#" role="listitem"
-                   onclick="openFullscreenViewer(event, 'read.php?file=<?= rawurlencode($it['file']) ?>'); return false;"
-                   title="Open flipbook">
-                  <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
-                  <span class="release-title"><?= h($it['label']) ?></span>
-                </a>
-              </div>
+              <a class="release-card"
+                 href="#" role="listitem"
+                 data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+                 title="Open flipbook">
+                <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+                <span class="release-title"><?= h($it['label']) ?></span>
+              </a>
             <?php endforeach; ?>
           </div>
         <?php endif; ?>
       </div>
-    </div>
+    </aside>
+
+    <!-- Main Flipbook Area -->
+    <main class="mag-wrap" id="ozlanka-mag-wrap">
+      <?php if (!empty($ozlanka_magazines)): ?>
+        <iframe class="mag-frame" id="ozlankaFrame"
+                title="OzLanka Viewer"
+                src="read.php?file=<?= rawurlencode($ozlanka_magazines[0]['file']) ?>"
+                allowfullscreen></iframe>
+      <?php else: ?>
+        <div style="padding: 40px; text-align: center; color: var(--dim); border: 2px dashed var(--ring); border-radius: var(--r-xl);">
+          <i class="fas fa-book-open" style="font-size: 3rem; margin-bottom: 16px; color: var(--g-300);"></i>
+          <h3>No OzLanka Magazines Published</h3>
+          <p>Check back later for exciting new content.</p>
+        </div>
+      <?php endif; ?>
+    </main>
   </div>
 </section>
+
+<!-- Mobile exclusive layout block... wait, we should do the same for OzLanka -->
+<?php if (!empty($ozlanka_magazines)): ?>
+  <div class="container show-on-mobile" style="margin-bottom: 2rem;">
+    <div id="ozlanka-releases-mobile" class="side-block releases-block ui-card">
+      <div class="side-title" style="margin-top:0;">OzLanka Issues</div>
+      <div class="releases" role="list">
+        <?php foreach ($ozlanka_magazines as $it):
+          $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+        ?>
+          <a class="release-card"
+             href="#" role="listitem"
+             data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+             title="Open flipbook">
+            <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+            <span class="release-title"><?= h($it['label']) ?></span>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div>
+<?php endif; ?>
 <div style="text-align: center; margin-bottom: 20px;">
   <img src="assets/img/guide.png" alt="TourGuide Logo" style="max-width: 50%; width: 50%; height: auto;">
 </div>
 <section id="issues" class="section">
-  <div class="container">
-    <!-- List Area -->
-    <div class="sidecard" style="padding: 20px;">
-      <div id="author" class="side-block" style="margin-bottom: 24px; text-align: center;">
+  <div class="container two-col">
+    <!-- Sidebar -->
+    <aside class="sidecard">
+      <div id="author" class="side-block">
         <div class="side-title">From Author</div>
-        <p class="side-text" id="authorNote" style="max-width: 800px; margin: 0 auto;"><?= $authorNote ? nl2br(h($authorNote)) : '—' ?></p>
+        <p class="side-text" id="authorNote"><?= $authorNote ? nl2br(h($authorNote)) : '—' ?></p>
       </div>
 
-      <div id="releases" class="side-block releases-block">
-        <div class="side-title" style="text-align: center;">Releases</div>
+      <div id="releases" class="side-block releases-block hide-on-mobile">
+        <div class="side-title">Releases</div>
         <?php if (empty($issues)): ?>
-          <div class="muted" style="text-align: center;">No magazines yet.</div>
+          <div class="muted">No magazines yet.</div>
         <?php else: ?>
-          <div class="news-grid">
+          <div class="releases" role="list" aria-label="Available issues">
             <?php foreach ($issues as $it):
               $exists   = $it['url'] !== '';
               $href     = $exists ? $it['url'] : '#';
               $isCurrent= $exists && ($it['url'] === $currentUrl);
               $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
-              <div class="news-card-wrapper">
-                <a class="release-card news-card-item <?= $exists ? '' : 'disabled' ?>"
-                   href="#" role="listitem"
-                   onclick="openFullscreenViewer(event, 'read.php?file=<?= rawurlencode($it['file']) ?>'); return false;"
-                   title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
-                  <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
-                  <span class="release-title"><?= h($it['label']) ?></span>
-                </a>
-              </div>
+              <a class="release-card <?= $exists ? '' : 'disabled' ?>"
+                 href="#" role="listitem"
+                 data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+                 title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
+                <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+                <span class="release-title"><?= h($it['label']) ?></span>
+              </a>
             <?php endforeach; ?>
           </div>
         <?php endif; ?>
       </div>
+    </aside>
+
+    <!-- Viewer + Controls -->
+    <div class="mag-wrap">
+      <div class="mag-pane">
+        <div class="viewer-overlay" data-viewer="magFrame">Tap to read</div>
+        <button class="exit-focus-btn">&times;</button>
+        <?php if ($currentUrl): ?>
+          <iframe class="mag-frame" id="magFrame" src="read.php?file=<?= rawurlencode($currentFile) ?>" title="Magazine Flipbook" allowfullscreen></iframe>
+        <?php else: ?>
+          <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
+            <div class="muted">Upload a PDF in the admin to preview it here.</div>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+
+    <!-- Mobile-only button for releases -->
+    <div class="show-on-mobile" style="text-align: center; margin-top: 10px;">
+        <button id="show-releases-btn" class="btn primary">View Previous Releases</button>
+    </div>
+
+    <!-- Releases (for mobile, now in a modal) -->
+    <div id="releases-modal" class="releases-modal">
+        <div class="releases-modal-content">
+            <span class="close-btn">&times;</span>
+            <div id="releases-mobile" class="side-block releases-block">
+                <div class="side-title">Releases</div>
+                <?php if (empty($issues)): ?>
+                    <div class="muted">No magazines yet.</div>
+      <?php else: ?>
+        <div class="releases" role="list" aria-label="Available issues">
+          <?php foreach ($issues as $it):
+            $exists   = $it['url'] !== '';
+            $href     = $exists ? $it['url'] : '#';
+            $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
+          ?>
+            <a class="release-card <?= $exists ? '' : 'disabled' ?>"
+               href="#" role="listitem"
+               data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+               title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
+              <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+              <span class="release-title"><?= h($it['label']) ?></span>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 </div>
@@ -820,32 +899,68 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
 
 <!-- Exclusive Magazines -->
 <section id="exclusive-magazines" class="section">
-  <div class="container">
-    <div class="sidecard" style="padding: 20px;">
-      <div id="exclusive-releases" class="side-block releases-block">
-        <div class="side-title" style="text-align: center;">Lanka Puwath</div>
+  <div class="container two-col">
+    <!-- Sidebar -->
+    <aside class="sidecard">
+      <div id="exclusive-releases" class="side-block releases-block hide-on-mobile">
+        <div class="side-title">Lanka Puwath</div>
         <?php if (empty($exclusives)): ?>
-          <div class="muted" style="text-align: center;">No Lanka Puwath issues yet.</div>
+          <div class="muted">No Lanka Puwath issues yet.</div>
         <?php else: ?>
-          <div class="news-grid">
+          <div class="releases" role="list" aria-label="Available exclusives">
             <?php foreach ($exclusives as $it):
               $exists   = $it['url'] !== '';
               $href     = $exists ? $it['url'] : '#';
               $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
-              <div class="news-card-wrapper">
-                <a class="release-card news-card-item <?= $exists ? '' : 'disabled' ?>"
-                   href="#" role="listitem"
-                   onclick="openFullscreenViewer(event, 'read.php?file=<?= rawurlencode($it['file']) ?>'); return false;"
-                   title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
-                  <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
-                  <span class="release-title"><?= h($it['label']) ?></span>
-                </a>
-              </div>
+              <a class="release-card <?= $exists ? '' : 'disabled' ?>"
+                 href="#" role="listitem"
+                 data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
+                 title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
+                <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+                <span class="release-title"><?= h($it['label']) ?></span>
+              </a>
             <?php endforeach; ?>
           </div>
         <?php endif; ?>
       </div>
+    </aside>
+
+    <!-- Viewer + Controls -->
+    <div class="mag-wrap">
+      <div class="mag-pane">
+        <div class="viewer-overlay" data-viewer="exclusiveFrame">Tap to read</div>
+        <button class="exit-focus-btn">&times;</button>
+        <?php if (!empty($exclusives)): ?>
+          <iframe class="mag-frame" id="exclusiveFrame" src="read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>" title="Exclusive Flipbook" allowfullscreen></iframe>
+        <?php else: ?>
+          <div class="mag-empty" style="display:grid;place-items:center;height:100%;padding:20px">
+            <div class="muted">Latest Lanka Puwath Magazine will be Released Soon....</div>
+          </div>
+        <?php endif; ?>
+      </div>
+    </div>
+    <div id="exclusive-releases-mobile" class="side-block releases-block show-on-mobile">
+      <div class="side-title">Lanka Puwath</div>
+      <?php if (empty($exclusives)): ?>
+        <div class="muted">No Lanka Puwath issues yet.</div>
+      <?php else: ?>
+        <div class="releases" role="list" aria-label="Available exclusives">
+          <?php foreach ($exclusives as $it):
+            $exists   = $it['url'] !== '';
+            $href     = $exists ? $it['url'] : '#';
+            $thumb    = $it['cover'] ?: 'assets/covers/logo.png';
+          ?>
+            <a class="release-card <?= $exists ? '' : 'disabled' ?>"
+               href="#" role="listitem"
+               data-pdf="read.php?file=<?= rawurlencode($it['url']) ?>"
+               title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
+              <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
+              <span class="release-title"><?= h($it['label']) ?></span>
+            </a>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
     </div>
   </div>
 </section>
@@ -853,14 +968,12 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
 
 
 <!-- Footer -->
-</div> <!-- End of .main-content-area -->
 <footer class="site-footer footer-dark" id="about">
-  <div class="foot foot-split">
-    <div class="copy">© <?= date('Y') ?> <strong>StarMedia</strong>. All rights reserved.</div>
+  <div class="container foot foot-split">
+    <div class="copy">© <?= date('Y') ?> <strong>TourGuide</strong>. All rights reserved.</div>
     <div class="credit">Designed & Developed by <a href="https://www.zeatralabs.com" target="_blank" rel="noopener">ZeatraLabs.com</a></div>
   </div>
 </footer>
-</div> <!-- End of .page-with-ads -->
 
 <!-- Fullscreen Viewer Container -->
 <div id="fullscreenViewer" class="fullscreen-viewer hidden">
@@ -970,6 +1083,108 @@ function setAuthorNoteFor(file){
   el.innerHTML = raw ? escapeHtml(raw).replace(/\n/g,'<br>') : '—';
 }
 
+// Viewer initializer
+function initViewer(frameId, releasesId, releasesMobileId, initialFile, paneSelector) {
+    const frame = document.getElementById(frameId);
+    const pane = document.querySelector(paneSelector);
+    if (!frame) return;
+
+    // Set initial data-file for overlay
+    if (pane) {
+        const overlay = pane.querySelector('.viewer-overlay');
+        if (overlay) overlay.dataset.file = initialFile;
+    }
+
+    function markCurrent(fileBase) {
+        document.querySelectorAll(`#${releasesId} .release-card, #${releasesMobileId} .release-card`).forEach(card => {
+            const same = (card.dataset.pdf || '') === fileBase; // actually comparing file base for now, can be URL
+            card.classList.toggle('is-current', same);
+            card.classList.remove('active');
+        });
+    }
+
+    function handleReleaseClick(e) {
+        const a = e.target.closest('.release-card:not(.disabled)');
+        if (!a) return;
+
+        e.preventDefault();
+
+        // This is a relative path like read.php?file=foo.pdf
+        const file = a.dataset.pdf || '';
+        frame.src = file;
+
+        // Update overlay data-file
+        if (pane) {
+            const overlay = pane.querySelector('.viewer-overlay');
+            if (overlay) overlay.dataset.file = file;
+        }
+
+        markCurrent(file);
+        a.classList.add('active');
+        a.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+        if (pane) {
+            const y = pane.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    }
+
+    // markCurrent(initialFile); // initialFile is now URL?
+
+    document.getElementById(releasesId)?.addEventListener('click', handleReleaseClick);
+    document.getElementById(releasesMobileId)?.addEventListener('click', handleReleaseClick);
+}
+
+// Initialize Magazine Viewer
+initViewer('magFrame', 'releases', 'releases-mobile', 'read.php?file=<?= rawurlencode($currentFile) ?>', '.mag-wrap');
+
+// Initialize Exclusive Viewer
+<?php if (!empty($exclusives)): ?>
+<?php if (!empty($ozlanka_magazines)): ?>
+  initViewer('ozlankaFrame', 'ozlanka-releases', 'ozlanka-releases-mobile', 'read.php?file=<?= rawurlencode($ozlanka_magazines[0]['file']) ?>', '#ozlanka-magazines .mag-wrap');
+<?php endif; ?>
+  initViewer('exclusiveFrame', 'exclusive-releases', 'exclusive-releases-mobile', 'read.php?file=<?= rawurlencode($exclusives[0]['file']) ?>', '#exclusive-magazines .mag-wrap');
+<?php endif; ?>
+
+// Overlay logic
+document.querySelectorAll('.viewer-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+        const viewerId = overlay.dataset.viewer;
+
+        // Magazine: open fullscreen viewer
+        if (viewerId === 'magFrame' || viewerId === 'exclusiveFrame') {
+             const file = overlay.dataset.file;
+             if (file && window.openFullscreenViewer) {
+                 window.openFullscreenViewer(e, file);
+                 return;
+             }
+        }
+
+        // Others: hide overlay and focus iframe
+        overlay.classList.add('hidden');
+        const viewer = document.getElementById(viewerId);
+        if (viewer) {
+            viewer.focus();
+        }
+
+        // Add focus state
+        const magWrap = overlay.closest('.mag-wrap');
+        document.body.classList.add('viewer-focused');
+        magWrap.classList.add('is-focused');
+    });
+});
+
+// Exit focus logic
+document.querySelectorAll('.exit-focus-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const magWrap = btn.closest('.mag-wrap');
+        const overlay = magWrap.querySelector('.viewer-overlay');
+
+        document.body.classList.remove('viewer-focused');
+        magWrap.classList.remove('is-focused');
+        overlay.classList.remove('hidden');
+    });
+});
 
 // Hide preloader
 window.addEventListener('load', () => {
