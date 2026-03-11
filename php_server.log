@@ -72,3 +72,21 @@ Stack trace:
 [Wed Mar 11 09:57:43 2026] 127.0.0.1:40898 Closing
 [Wed Mar 11 09:57:43 2026] 127.0.0.1:40902 Closing
 [Wed Mar 11 09:57:43 2026] 127.0.0.1:40916 Closing
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35362 Accepted
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35362 [200]: GET /
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35362 Closing
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35372 Accepted
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35378 Accepted
+[Wed Mar 11 10:35:58 2026] 127.0.0.1:35372 [200]: GET /assets/logo-2.png
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35378 [200]: GET /assets/logo1.png
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35372 Closing
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35378 Closing
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35394 Accepted
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35404 Accepted
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35406 Accepted
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35394 [200]: GET /assets/logo-ozlanka.png
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35394 Closing
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35404 [200]: GET /assets/img/guide.png
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35406 [200]: GET /assets/img/exclusive_hero.jpg
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35404 Closing
+[Wed Mar 11 10:35:59 2026] 127.0.0.1:35406 Closing

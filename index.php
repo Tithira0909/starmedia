@@ -186,8 +186,8 @@ $heroImgExists = is_file(__DIR__ . '/' . $heroImg);
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TourGuide</title>
-<link rel="icon" href="assets/img/logo.png" type="image/png">
+<title>StarMedia</title>
+<link rel="icon" href="assets/logo-2.png" type="image/png">
 <meta property="og:image" content="assets/img/guide.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -722,7 +722,7 @@ body.viewer-focused .focused-view-overlay {
 
 <!-- OzLanka Magazine + Sidebar -->
 <div style="text-align: center; margin-bottom: 20px;">
-  <img src="assets/logo-ozlanka.png" alt="OzLanka Logo" style="max-width: 25%; width: 25%; height: auto;">
+  <img src="assets/logo-ozlanka.png" alt="OzLanka Logo" style="max-width: 55%; width: 55%; height: auto;">
 </div>
 <section id="ozlanka-magazines" class="section">
   <div class="container two-col">
@@ -887,7 +887,7 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
   <div class="container">
     <?php if ($exclusiveHeroImgExists): ?>
       <div class="hero-only-card" style="text-align: center;">
-        <img src="<?= h($exclusiveHeroImg) ?>" alt="Exclusive hero image" style="max-width: 50%; width: 50%; height: auto;">
+        <img src="<?= h($exclusiveHeroImg) ?>" alt="Exclusive hero image" style="max-width: 50%; width: 50%; height: auto; display: block; margin: 0 auto;">
       </div>
     <?php else: ?>
       <div class="hero-only-card" style="display:grid;place-items:center;min-height:240px;background:linear-gradient(120deg,#ecfdf5,#ffffff)">
