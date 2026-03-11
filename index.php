@@ -790,7 +790,7 @@ body.viewer-focused .focused-view-overlay {
   </div>
 <?php endif; ?>
 <div style="text-align: center; margin-bottom: 20px;">
-  <img src="assets/logo1.png" alt="TourGuide Logo" style="max-width: 25%; width: 25%; height: auto;">
+  <img src="assets/img/guide.png" alt="TourGuide Logo" style="max-width: 50%; width: 50%; height: auto;">
 </div>
 <section id="issues" class="section">
   <div class="container two-col">
@@ -886,7 +886,9 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
 <section id="exclusive-hero" class="hero">
   <div class="container">
     <?php if ($exclusiveHeroImgExists): ?>
-      <div class="hero-only-card"><img src="<?= h($exclusiveHeroImg) ?>" alt="Exclusive hero image"></div>
+      <div class="hero-only-card" style="text-align: center;">
+        <img src="<?= h($exclusiveHeroImg) ?>" alt="Exclusive hero image" style="max-width: 50%; width: 50%; height: auto;">
+      </div>
     <?php else: ?>
       <div class="hero-only-card" style="display:grid;place-items:center;min-height:240px;background:linear-gradient(120deg,#ecfdf5,#ffffff)">
         <div class="muted">Add <code>assets/img/exclusive_hero.png</code> to show a hero image.</div>
@@ -896,10 +898,6 @@ $exclusiveHeroImgExists = is_file(__DIR__ . '/' . $exclusiveHeroImg);
 </section>
 
 <!-- Exclusive Magazines -->
-<div style="text-align: center; margin-bottom: 20px;">
-  <img src="assets/logo-2.png" alt="Lanka Puwath Logo" style="max-width: 25%; width: 25%; height: auto;">
-</div>
-
 <section id="exclusive-magazines" class="section">
   <div class="container two-col">
     <!-- Sidebar -->
