@@ -99,13 +99,17 @@ try {
   $stmt->execute();
   foreach ($stmt as $row) {
     $pdfPath = trim($row['pdf_file']);
+    $file    = basename($pdfPath);
     $thumb   = trim($row['banner_file']);
+    $url     = resolvePdfPath($file);
 
     $ozlanka_magazines[] = [
       'id'    => $row['id'],
       'label' => $row['label'] ?: 'Unlabeled',
       'title' => $row['title'] ?: 'Untitled',
-      'file'  => $pdfPath,
+      'pdf'   => $pdfPath,
+      'file'  => $file,
+      'url'   => $url,
       'cover' => $thumb,
     ];
   }
@@ -735,12 +739,13 @@ body.viewer-focused .focused-view-overlay {
         <?php else: ?>
           <div class="releases" role="list">
             <?php foreach ($ozlanka_magazines as $it):
-              $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+              $exists = $it['url'] !== '';
+              $thumb  = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
-              <a class="release-card"
+              <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                  href="#" role="listitem"
                  data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
-                 title="Open flipbook">
+                 title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
               </a>
@@ -777,12 +782,13 @@ body.viewer-focused .focused-view-overlay {
       <div class="side-title" style="margin-top:0;">OzLanka Issues</div>
       <div class="releases" role="list">
         <?php foreach ($ozlanka_magazines as $it):
-          $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+          $exists = $it['url'] !== '';
+          $thumb  = $it['cover'] ?: 'assets/covers/logo.png';
         ?>
-          <a class="release-card"
+          <a class="release-card <?= $exists ? '' : 'disabled' ?>"
              href="#" role="listitem"
              data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
-             title="Open flipbook">
+             title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
             <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
             <span class="release-title"><?= h($it['label']) ?></span>
           </a>
