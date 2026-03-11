@@ -14,7 +14,7 @@ if (!function_exists('h')) {
 /* Helper to resolve PDF path */
 function resolvePdfPath($filename) {
     if (!$filename) return '';
-    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines'];
+    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines', 'assets/ozlanka_magazines'];
     foreach ($dirs as $dir) {
         $path = $dir . '/' . $filename;
         if (file_exists(__DIR__ . '/' . $path)) {
