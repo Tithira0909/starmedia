@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // PDF (required)
     $pdfRel = save_upload(
       'pdf',
-      realpath(__DIR__ . '/../assets/magazines') ?: __DIR__ . '/../assets/magazines',
+      realpath(__DIR__ . '/../assets/ozlanka_magazines') ?: __DIR__ . '/../assets/ozlanka_magazines',
       ['pdf'],
       50 * 1024 * 1024
     );
