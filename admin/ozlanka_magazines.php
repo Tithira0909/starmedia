@@ -9,7 +9,7 @@ $sql = "
     m.id, m.label, m.title, m.pdf_file, m.banner_file, m.author_note,
     m.is_published, m.published_at, m.created_at
   FROM ozlanka_magazines m
-  ORDER BY COALESCE(m.published_at, m.created_at) DESC, m.id DESC
+  ORDER BY m.sort_order ASC, COALESCE(m.published_at, m.created_at) DESC, m.id DESC
 ";
 $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
@@ -81,6 +81,7 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
       <table class="table-green">
         <thead>
           <tr>
+            <th style="width: 40px;"></th>
             <th>Label</th>
             <th>Title</th>
             <th>PDF</th>
@@ -90,9 +91,10 @@ $rows = pdo()->query($sql)->fetchAll(PDO::FETCH_ASSOC);
             <th class="t-right"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="sortable-tbody" data-table="ozlanka_magazines">
         <?php foreach ($rows as $r): ?>
-          <tr>
+          <tr data-id="<?= (int)$r['id'] ?>">
+            <td style="cursor: grab; text-align: center; color: #94a3b8;">&#9776;</td>
             <td data-label="Label"><?= h($r['label']) ?></td>
             <td data-label="Title"><?= $r['title'] !== null && $r['title'] !== '' ? h($r['title']) : '—' ?></td>
             <td data-label="PDF"><?= h(basename($r['pdf_file'] ?? '')) ?></td>

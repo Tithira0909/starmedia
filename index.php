@@ -32,7 +32,7 @@ function resolvePdfPath($filename) {
 $rows = pdo()->query("
   SELECT id, label, pdf_file, published_at, author_note, banner_file
   FROM magazines
-  ORDER BY COALESCE(published_at, '1970-01-01') DESC, id DESC
+  ORDER BY sort_order ASC, COALESCE(published_at, '1970-01-01') DESC, id DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 /* 2) Normalize for template */
@@ -61,7 +61,7 @@ try {
     $newsflash_rows = pdo()->query("
       SELECT id, label, pdf_file, published_at, author_note, banner_file
       FROM news_flash
-      ORDER BY COALESCE(published_at, '1970-01-01') DESC, id DESC
+      ORDER BY sort_order ASC, COALESCE(published_at, '1970-01-01') DESC, id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // ignore
@@ -94,7 +94,7 @@ try {
       SELECT id, title, pdf_file, banner_file, label, is_published, published_at
       FROM ozlanka_magazines
       WHERE is_published = 1
-      ORDER BY published_at DESC, id DESC
+      ORDER BY sort_order ASC, published_at DESC, id DESC
   ");
   $stmt->execute();
   foreach ($stmt as $row) {
@@ -116,7 +116,7 @@ try {
     $exclusive_rows = pdo()->query("
       SELECT id, label, pdf_file, published_at, author_note, banner_file
       FROM exclusive_magazines
-      ORDER BY COALESCE(published_at, '1970-01-01') DESC, id DESC
+      ORDER BY sort_order ASC, COALESCE(published_at, '1970-01-01') DESC, id DESC
     ")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // ignore
