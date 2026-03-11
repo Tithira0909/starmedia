@@ -458,7 +458,7 @@ body.viewer-focused .focused-view-overlay {
 
 <div class="focused-view-overlay"></div>
 
-<div id="preloader">
+<div id="preloader" style="display: none;">
   <div class="loader"></div>
 </div>
 
