@@ -494,32 +494,10 @@ body.viewer-focused .focused-view-overlay {
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
 
-<!-- Ad Wrapper -->
-<?php
-  // Fetch ad banners
-  $leftAdBanner = '';
-  $rightAdBanner = '';
-  try {
-      $stmt = pdo()->prepare("SELECT key_name, value FROM site_settings WHERE key_name IN ('left_ad_banner', 'right_ad_banner')");
-      $stmt->execute();
-      $adSettings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-      $leftAdBanner = $adSettings['left_ad_banner'] ?? '';
-      $rightAdBanner = $adSettings['right_ad_banner'] ?? '';
-  } catch (Exception $e) {}
-?>
-<div class="page-with-ads">
-  <?php if ($leftAdBanner): ?>
-    <aside class="side-ad left-ad">
-      <img src="<?= htmlspecialchars($leftAdBanner) ?>" alt="Advertisement">
-    </aside>
-  <?php endif; ?>
-
-  <main class="main-content-area">
-
 <!-- Hero -->
 <section id="home" class="hero">
   <div class="container" style="text-align: center;">
-    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 25%; width: 25%; height: auto;">
+    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 50%; width: 50%; height: auto;">
   </div>
 </section>
 
@@ -1252,57 +1230,5 @@ window.onclick = function(event) {
     },
   });
 </script>
-  </main>
-
-  <?php if ($rightAdBanner): ?>
-    <aside class="side-ad right-ad">
-      <img src="<?= htmlspecialchars($rightAdBanner) ?>" alt="Advertisement">
-    </aside>
-  <?php endif; ?>
-</div> <!-- End page-with-ads -->
-
-<style>
-/* Ad Layout Styling */
-.page-with-ads {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 10px;
-  box-sizing: border-box;
-}
-.main-content-area {
-  flex: 1;
-  max-width: 1200px;
-  min-width: 0; /* Prevents overflow */
-}
-.side-ad {
-  display: none; /* Hidden on mobile by default */
-  width: 160px; /* Standard wide skyscraper ad width */
-  position: sticky;
-  top: 100px; /* Space from header */
-  flex-shrink: 0;
-}
-.side-ad img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-@media (min-width: 1200px) {
-  .side-ad {
-    display: block; /* Show ads on larger screens */
-  }
-}
-
-@media (min-width: 1600px) {
-  .side-ad {
-    width: 300px; /* Wider ads on very large screens */
-  }
-}
-</style>
 </body>
 </html>
