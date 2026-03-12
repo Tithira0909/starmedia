@@ -333,7 +333,7 @@ body.nav-open{overflow:hidden;}
 .mag-controls{display:none;}
 
 /* Footer */
-.footer-dark{background:#116932;color:#f8fafc;border-top:1px solid rgba(94,216,135,.08)}
+.footer-dark{background:blue;color:#f8fafc;border-top:1px solid rgba(94,216,135,.08)}
 .foot{padding:18px 16px}
 .foot-split{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .credit a{color:#7efbd3;text-decoration:none}.credit a:hover{text-decoration:underline}
@@ -379,7 +379,7 @@ body.nav-open{overflow:hidden;}
   background: linear-gradient(135deg, var(--g-50), #ffffff);
 }
 .welcome-message {
-  font-family: 'Caveat', 'Dancing Script', 'Pacifico', cursive; /* Handwritten style font */
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-size: 1.5rem; /* Reduced font size */
   font-weight: 600;
   color: var(--g-800);
@@ -497,7 +497,7 @@ body.viewer-focused .focused-view-overlay {
 <!-- Hero -->
 <section id="home" class="hero">
   <div class="container" style="text-align: center;">
-    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 50%; width: 50%; height: auto;">
+    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 80%; width: 80%; height: auto;">
   </div>
 </section>
 
