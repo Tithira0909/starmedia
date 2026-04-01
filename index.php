@@ -14,7 +14,7 @@ if (!function_exists('h')) {
 /* Helper to resolve PDF path */
 function resolvePdfPath($filename) {
     if (!$filename) return '';
-    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines'];
+    $dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines', 'assets/ozlanka_magazines'];
     foreach ($dirs as $dir) {
         $path = $dir . '/' . $filename;
         if (file_exists(__DIR__ . '/' . $path)) {
@@ -99,13 +99,17 @@ try {
   $stmt->execute();
   foreach ($stmt as $row) {
     $pdfPath = trim($row['pdf_file']);
+    $file    = basename($pdfPath);
     $thumb   = trim($row['banner_file']);
+    $url     = resolvePdfPath($file);
 
     $ozlanka_magazines[] = [
       'id'    => $row['id'],
       'label' => $row['label'] ?: 'Unlabeled',
       'title' => $row['title'] ?: 'Untitled',
-      'file'  => $pdfPath,
+      'pdf'   => $pdfPath,
+      'file'  => $file,
+      'url'   => $url,
       'cover' => $thumb,
     ];
   }
@@ -454,7 +458,7 @@ body.viewer-focused .focused-view-overlay {
 
 <div class="focused-view-overlay"></div>
 
-<div id="preloader">
+<div id="preloader" style="display: none;">
   <div class="loader"></div>
 </div>
 
@@ -490,32 +494,10 @@ body.viewer-focused .focused-view-overlay {
   <div class="nav-scrim" id="navScrim" aria-hidden="true"></div>
 </header>
 
-<!-- Ad Wrapper -->
-<?php
-  // Fetch ad banners
-  $leftAdBanner = '';
-  $rightAdBanner = '';
-  try {
-      $stmt = pdo()->prepare("SELECT key_name, value FROM site_settings WHERE key_name IN ('left_ad_banner', 'right_ad_banner')");
-      $stmt->execute();
-      $adSettings = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-      $leftAdBanner = $adSettings['left_ad_banner'] ?? '';
-      $rightAdBanner = $adSettings['right_ad_banner'] ?? '';
-  } catch (Exception $e) {}
-?>
-<div class="page-with-ads">
-  <?php if ($leftAdBanner): ?>
-    <aside class="side-ad left-ad">
-      <img src="<?= htmlspecialchars($leftAdBanner) ?>" alt="Advertisement">
-    </aside>
-  <?php endif; ?>
-
-  <main class="main-content-area">
-
 <!-- Hero -->
 <section id="home" class="hero">
   <div class="container" style="text-align: center;">
-    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 25%; width: 25%; height: auto;">
+    <img src="assets/logo1.png" alt="Star Media Logo" style="max-width: 50%; width: 50%; height: auto;">
   </div>
 </section>
 
@@ -545,8 +527,9 @@ body.viewer-focused .focused-view-overlay {
       <div class="swiper-wrapper">
         <?php foreach ($quickNews as $news): ?>
           <div class="swiper-slide">
-            <div class="quick-news-card">
-              <a href="#newsflash"><img src="<?= h($news['image_file']) ?>" alt="Update Image" class="quick-news-img"></a>
+            <div class="quick-news-card" style="background-image: url('<?= h($news['image_file']) ?>');">
+              <div class="quick-news-overlay"></div>
+              <a href="#newsflash" class="quick-news-link" aria-label="View news flash"></a>
               <div class="quick-news-text">
                 <p style="text-align: justify;"><?= h($news['news_text']) ?></p>
               </div>
@@ -566,25 +549,53 @@ body.viewer-focused .focused-view-overlay {
 
 <style>
 .quick-news-card {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 22px;
-  background: var(--bg);
-  border: 1px solid var(--muted);
-  border-radius: var(--r-xl);
-  padding: 22px;
-  box-shadow: var(--sh-2);
-  align-items: center;
-}
-.quick-news-img {
+  position: relative;
   width: 100%;
-  height: auto;
-  border-radius: var(--r-lg);
+  min-height: 250px;
+  background-size: cover;
+  background-position: center;
+  border-radius: var(--r-xl);
+  padding: 40px;
+  box-shadow: var(--sh-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+}
+.quick-news-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: var(--r-xl);
+  z-index: 1;
+}
+.quick-news-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.quick-news-text {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  max-width: 800px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  pointer-events: none;
 }
 @media (max-width: 768px) {
   .quick-news-card {
-    grid-template-columns: 1fr;
+    padding: 24px;
+    min-height: 200px;
+  }
+  .quick-news-text {
+    font-size: 1rem;
     text-align: center;
+  }
+  .quick-news-text p {
+    text-align: center !important;
   }
 }
 .horizontal-carousel {
@@ -735,12 +746,13 @@ body.viewer-focused .focused-view-overlay {
         <?php else: ?>
           <div class="releases" role="list">
             <?php foreach ($ozlanka_magazines as $it):
-              $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+              $exists = $it['url'] !== '';
+              $thumb  = $it['cover'] ?: 'assets/covers/logo.png';
             ?>
-              <a class="release-card"
+              <a class="release-card <?= $exists ? '' : 'disabled' ?>"
                  href="#" role="listitem"
                  data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
-                 title="Open flipbook">
+                 title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
                 <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
                 <span class="release-title"><?= h($it['label']) ?></span>
               </a>
@@ -777,12 +789,13 @@ body.viewer-focused .focused-view-overlay {
       <div class="side-title" style="margin-top:0;">OzLanka Issues</div>
       <div class="releases" role="list">
         <?php foreach ($ozlanka_magazines as $it):
-          $thumb = $it['cover'] ?: 'assets/covers/logo.png';
+          $exists = $it['url'] !== '';
+          $thumb  = $it['cover'] ?: 'assets/covers/logo.png';
         ?>
-          <a class="release-card"
+          <a class="release-card <?= $exists ? '' : 'disabled' ?>"
              href="#" role="listitem"
              data-pdf="read.php?file=<?= rawurlencode($it['file']) ?>"
-             title="Open flipbook">
+             title="<?= $exists ? 'Open flipbook' : 'Missing: ' . h($it['pdf']) ?>">
             <span class="release-thumb"><img src="<?= h($thumb) ?>" alt="<?= h($it['label']) ?> banner"></span>
             <span class="release-title"><?= h($it['label']) ?></span>
           </a>
@@ -1172,10 +1185,13 @@ document.querySelectorAll('.exit-focus-btn').forEach(btn => {
 });
 
 // Hide preloader
-window.addEventListener('load', () => {
+function hidePreloader() {
     const preloader = document.getElementById('preloader');
-    preloader.classList.add('hidden');
-});
+    if (preloader) preloader.classList.add('hidden');
+}
+window.addEventListener('load', hidePreloader);
+document.addEventListener('DOMContentLoaded', hidePreloader);
+setTimeout(hidePreloader, 3000); // fallback
 
 // Modal logic
 var modal = document.getElementById("releases-modal");
@@ -1214,57 +1230,5 @@ window.onclick = function(event) {
     },
   });
 </script>
-  </main>
-
-  <?php if ($rightAdBanner): ?>
-    <aside class="side-ad right-ad">
-      <img src="<?= htmlspecialchars($rightAdBanner) ?>" alt="Advertisement">
-    </aside>
-  <?php endif; ?>
-</div> <!-- End page-with-ads -->
-
-<style>
-/* Ad Layout Styling */
-.page-with-ads {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 10px;
-  box-sizing: border-box;
-}
-.main-content-area {
-  flex: 1;
-  max-width: 1200px;
-  min-width: 0; /* Prevents overflow */
-}
-.side-ad {
-  display: none; /* Hidden on mobile by default */
-  width: 160px; /* Standard wide skyscraper ad width */
-  position: sticky;
-  top: 100px; /* Space from header */
-  flex-shrink: 0;
-}
-.side-ad img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-@media (min-width: 1200px) {
-  .side-ad {
-    display: block; /* Show ads on larger screens */
-  }
-}
-
-@media (min-width: 1600px) {
-  .side-ad {
-    width: 300px; /* Wider ads on very large screens */
-  }
-}
-</style>
 </body>
 </html>

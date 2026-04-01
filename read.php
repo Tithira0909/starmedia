@@ -9,7 +9,7 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 if ($file === '' || !preg_match('/^[A-Za-z0-9._-]+$/', $file)) { http_response_code(400); exit('Invalid file'); }
 
 // Resolve path
-$dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines'];
+$dirs = ['assets/magazines', 'assets/news_flash', 'assets/exclusive_magazines', 'assets/ozlanka_magazines'];
 $path = null;
 $pdfRelUrl = null;
 

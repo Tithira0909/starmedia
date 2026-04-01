@@ -47,17 +47,18 @@ function save_upload(string $field, string $destDir, array $allowExt, int $maxBy
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   try {
-    $label       = trim((string)($_POST['label'] ?? ''));
-    $title       = trim((string)($_POST['title'] ?? ''));
-    $issue_date  = trim((string)($_POST['issue_date'] ?? ''));
-    $author_note = trim((string)($_POST['author_note'] ?? ''));
+    $label        = trim((string)($_POST['label'] ?? ''));
+    $title        = trim((string)($_POST['title'] ?? ''));
+    $issue_date   = trim((string)($_POST['issue_date'] ?? ''));
+    $author_note  = trim((string)($_POST['author_note'] ?? ''));
+    $is_published = isset($_POST['is_published']) ? 1 : 0;
 
     if ($label === '') throw new RuntimeException('Issue label is required.');
 
     // PDF (required)
     $pdfRel = save_upload(
       'pdf',
-      realpath(__DIR__ . '/../assets/magazines') ?: __DIR__ . '/../assets/magazines',
+      realpath(__DIR__ . '/../assets/ozlanka_magazines') ?: __DIR__ . '/../assets/ozlanka_magazines',
       ['pdf'],
       50 * 1024 * 1024
     );
@@ -78,19 +79,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = pdo();
     $sql = "
       INSERT INTO ozlanka_magazines
-        (label, title, issue_date, author_note, pdf_file, banner_file, is_published, created_at)
+        (label, title, issue_date, author_note, pdf_file, banner_file, is_published, created_at, published_at)
       VALUES
-        (:label, :title, :issue_date, :author_note, :pdf_file, :banner_file, 0, NOW())
+        (:label, :title, :issue_date, :author_note, :pdf_file, :banner_file, :is_published, NOW(), " . ($is_published ? "NOW()" : "NULL") . ")
     ";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-      ':label'       => $label,
-      ':title'       => $title !== '' ? $title : null,
-      ':issue_date'  => $issue_date !== '' ? $issue_date : null,
-      ':author_note' => $author_note !== '' ? $author_note : null,
-      ':pdf_file'    => $pdfRel,
-      ':banner_file' => $bannerRel,
+      ':label'        => $label,
+      ':title'        => $title !== '' ? $title : null,
+      ':issue_date'   => $issue_date !== '' ? $issue_date : null,
+      ':author_note'  => $author_note !== '' ? $author_note : null,
+      ':pdf_file'     => $pdfRel,
+      ':banner_file'  => $bannerRel,
+      ':is_published' => $is_published,
     ]);
 
     // success — back to the list
@@ -197,6 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <img id="bannerPreview" class="img-preview" alt="" hidden>
         <div id="bannerChip" class="file-chip" hidden></div>
+      </div>
+
+      <div class="f span2" style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+        <input type="checkbox" id="is_published" name="is_published" value="1" checked style="width:20px;height:20px;cursor:pointer;">
+        <label for="is_published" style="margin:0;cursor:pointer;font-weight:700;">Publish immediately</label>
       </div>
     </div>
 

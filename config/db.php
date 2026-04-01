@@ -18,6 +18,9 @@ function pdo(): PDO {
       pdf_file VARCHAR(255),
       banner_file VARCHAR(255),
       label VARCHAR(255),
+      issue_date DATE NULL,
+      author_note TEXT NULL,
+      sort_order INT DEFAULT 0,
       published_at DATETIME,
       created_at DATETIME,
       is_published TINYINT(1) DEFAULT 1
